@@ -4,26 +4,33 @@ import {
   ArrowRight,
   Building2,
   ClipboardList,
+  Crown,
   Eye,
   Home,
   ImageIcon,
+  Lock,
   Plus,
   Sparkles,
   Star,
   TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
+import { ProStatsPanel } from "@/components/dashboard/pro-stats-panel";
+import { ProUpgradeModal } from "@/components/dashboard/pro-upgrade-modal";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { WelcomeCard } from "@/components/dashboard/welcome-card";
 import { Button } from "@/components/ui/button";
-import { useBookings, useMyHouses } from "@/lib/api/hooks";
+import { useBookings, useMyHouses, useSubscriptionStatus } from "@/lib/api/hooks";
 import type { UserResponse } from "@/lib/api/types";
+import { fullUploadUrl } from "@/lib/api/uploads";
 import { formatPrice } from "@/lib/utils";
 
 export function LandlordDashboard({ user }: { user: UserResponse }) {
   const { data: housesData } = useMyHouses({ page_size: 100 });
   const { data: bookingsData } = useBookings({ page_size: 100 });
+  const { data: subscriptionStatus } = useSubscriptionStatus();
 
   const houses = housesData?.items ?? [];
   const bookings = bookingsData?.items ?? [];
@@ -43,7 +50,17 @@ export function LandlordDashboard({ user }: { user: UserResponse }) {
   const pendingList = bookings.filter((b) => b.status === "pending").slice(0, 3);
   const recentHouses = houses.slice(0, 3);
   const profile = user.landlord_profile;
-  const freeListingsRemaining = Math.max(0, 5 - (profile?.free_listings_used ?? 0));
+  const FREE_LISTINGS_LIMIT = 1;
+  const freeListingsRemaining = Math.max(
+    0,
+    FREE_LISTINGS_LIMIT - (profile?.free_listings_used ?? 0),
+  );
+  // Real-time PRO holatini subscription status'dan olamiz —
+  // landlord_profile.is_pro auth store'da cache'lanadi va PRO sotib olgandan keyin
+  // yangilanmasligi mumkin. useSubscriptionStatus() har doim freshroq qiymat qaytaradi.
+  const isPro = Boolean(subscriptionStatus?.is_pro || profile?.is_pro);
+  const atListingLimit = !isPro && freeListingsRemaining <= 0;
+  const [proGateOpen, setProGateOpen] = useState(false);
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -72,15 +89,42 @@ export function LandlordDashboard({ user }: { user: UserResponse }) {
           sub="hozir yashayapti"
           color="text-green-600"
         />
-        <StatCard
-          icon={Sparkles}
-          label="Oylik daromad"
-          value={formatPrice(monthlyRevenue, "UZS")}
-          sub="faol bronlar"
-          color="text-orange-600"
-          isMoney
-        />
+        {isPro ? (
+          <StatCard
+            icon={Sparkles}
+            label="Oylik daromad"
+            value={formatPrice(monthlyRevenue, "UZS")}
+            sub="faol bronlar"
+            color="text-orange-600"
+            isMoney
+          />
+        ) : (
+          <Link
+            href="/dashboard/subscription"
+            className="group relative overflow-hidden rounded-2xl border border-dashed border-yellow-300 bg-gradient-to-br from-yellow-50 to-orange-50 p-5 transition hover:shadow-md"
+          >
+            <div className="flex items-start gap-3">
+              <div className="rounded-xl bg-yellow-100 p-2.5 text-orange-600">
+                <Lock className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-wider text-orange-700">
+                  Daromad tahlili
+                </p>
+                <p className="mt-1 text-sm font-semibold leading-tight">
+                  PRO ga o&apos;tib to&apos;liq statistikani oching
+                </p>
+                <p className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-orange-700">
+                  <Crown className="h-3 w-3" /> PRO funksiya
+                </p>
+              </div>
+            </div>
+          </Link>
+        )}
       </div>
+
+      {/* PRO stats panel (only for PRO landlords) */}
+      {isPro && <ProStatsPanel houses={houses} bookings={bookings} />}
 
       {/* PRO upsell */}
       {!profile?.is_pro && (
@@ -98,7 +142,7 @@ export function LandlordDashboard({ user }: { user: UserResponse }) {
               </p>
             </div>
             <Button asChild className="shadow-md">
-              <Link href="/#pricing">
+              <Link href="/dashboard/subscription">
                 <Sparkles className="h-4 w-4" />
                 PRO ga o&apos;tish
               </Link>
@@ -136,7 +180,7 @@ export function LandlordDashboard({ user }: { user: UserResponse }) {
                 <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-blue-100 to-yellow-100">
                   {b.house_photo && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={b.house_photo} alt="" className="h-full w-full object-cover" />
+                    <img src={fullUploadUrl(b.house_photo) ?? b.house_photo} alt="" className="h-full w-full object-cover" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -163,12 +207,19 @@ export function LandlordDashboard({ user }: { user: UserResponse }) {
             <Button asChild size="sm" variant="ghost">
               <Link href="/dashboard/houses">Hammasi →</Link>
             </Button>
-            <Button asChild size="sm">
-              <Link href="/dashboard/houses/new">
+            {atListingLimit ? (
+              <Button size="sm" onClick={() => setProGateOpen(true)}>
                 <Plus className="h-4 w-4" />
                 Yangi e&apos;lon
-              </Link>
-            </Button>
+              </Button>
+            ) : (
+              <Button asChild size="sm">
+                <Link href="/dashboard/houses/new">
+                  <Plus className="h-4 w-4" />
+                  Yangi e&apos;lon
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
 
@@ -179,26 +230,33 @@ export function LandlordDashboard({ user }: { user: UserResponse }) {
             <p className="mt-1 text-sm text-muted-foreground">
               Birinchi e&apos;loningizni qo&apos;shing — bepul!
             </p>
-            <Button asChild className="mt-4">
-              <Link href="/dashboard/houses/new">
+            {atListingLimit ? (
+              <Button className="mt-4" onClick={() => setProGateOpen(true)}>
                 <Plus className="h-4 w-4" />
                 E&apos;lon qo&apos;shish
-              </Link>
-            </Button>
+              </Button>
+            ) : (
+              <Button asChild className="mt-4">
+                <Link href="/dashboard/houses/new">
+                  <Plus className="h-4 w-4" />
+                  E&apos;lon qo&apos;shish
+                </Link>
+              </Button>
+            )}
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-3">
             {recentHouses.map((h) => (
               <Link
                 key={h.id}
-                href={`/dashboard/houses/${h.id}`}
+                href={`/houses/${h.id}`}
                 className="group overflow-hidden rounded-xl border bg-background transition hover:shadow-md"
               >
                 <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                   {h.main_photo ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={h.main_photo}
+                      src={fullUploadUrl(h.main_photo) ?? h.main_photo}
                       alt=""
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
@@ -226,6 +284,11 @@ export function LandlordDashboard({ user }: { user: UserResponse }) {
           </div>
         )}
       </section>
+
+      <ProUpgradeModal
+        open={proGateOpen}
+        onClose={() => setProGateOpen(false)}
+      />
     </div>
   );
 }

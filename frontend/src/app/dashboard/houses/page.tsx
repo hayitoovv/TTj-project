@@ -17,14 +17,18 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 
+import { ProUpgradeModal } from "@/components/dashboard/pro-upgrade-modal";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { housesApi } from "@/lib/api/houses";
 import { useAdminHouses, useMyHouses } from "@/lib/api/hooks";
 import { apiClient } from "@/lib/api/client";
 import type { HouseListItem, HouseStatus } from "@/lib/api/types";
+import { fullUploadUrl } from "@/lib/api/uploads";
 import { cn, formatPrice } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth";
+
+const FREE_LISTINGS_LIMIT = 1;
 
 const FILTERS: { value: "all" | HouseStatus; label: string }[] = [
   { value: "all", label: "Hammasi" },
@@ -62,6 +66,11 @@ export default function HousesPage() {
 
   const [rejectTarget, setRejectTarget] = useState<HouseListItem | null>(null);
   const [reason, setReason] = useState("");
+  const [proGateOpen, setProGateOpen] = useState(false);
+
+  const isPro = Boolean(user?.landlord_profile?.is_pro);
+  const totalListings = data?.total ?? 0;
+  const atListingLimit = !isAdmin && !isPro && totalListings >= FREE_LISTINGS_LIMIT;
   const rejectMutation = useMutation({
     mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
       const res = await apiClient.post(`/houses/${id}/reject`, { reason });
@@ -86,12 +95,19 @@ export default function HousesPage() {
           </p>
         </div>
         {!isAdmin && (
-          <Button asChild className="shadow-md">
-            <Link href="/dashboard/houses/new">
+          atListingLimit ? (
+            <Button className="shadow-md" onClick={() => setProGateOpen(true)}>
               <Plus className="h-4 w-4" />
               Yangi e&apos;lon
-            </Link>
-          </Button>
+            </Button>
+          ) : (
+            <Button asChild className="shadow-md">
+              <Link href="/dashboard/houses/new">
+                <Plus className="h-4 w-4" />
+                Yangi e&apos;lon
+              </Link>
+            </Button>
+          )
         )}
       </div>
 
@@ -142,7 +158,7 @@ export default function HousesPage() {
                   {h.main_photo ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={h.main_photo}
+                      src={fullUploadUrl(h.main_photo) ?? h.main_photo}
                       alt={h.title}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
@@ -259,6 +275,11 @@ export default function HousesPage() {
           ))}
         </div>
       )}
+
+      <ProUpgradeModal
+        open={proGateOpen}
+        onClose={() => setProGateOpen(false)}
+      />
 
       {/* Reject modal */}
       {rejectTarget && (

@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 
 import { loadYmaps } from "@/lib/yandex-maps-loader";
 import type { HouseListItem } from "@/lib/api/types";
+import { fullUploadUrl } from "@/lib/api/uploads";
 import { formatPrice } from "@/lib/utils";
 
 interface YandexHousesMapProps {
@@ -97,7 +98,7 @@ function renderMarkers(ymaps: any, collection: any, houses: HouseListItem[]) {
         ${
           h.main_photo
             ? `<div style="position:relative;width:100%;aspect-ratio:16/10;background:#f1f5f9;border-radius:8px;overflow:hidden;margin-bottom:8px;">
-                <img src="${escapeAttr(h.main_photo)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" />
+                <img src="${escapeAttr(fullUploadUrl(h.main_photo) ?? h.main_photo)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" />
                 ${h.is_top ? `<span style="position:absolute;left:6px;top:6px;background:linear-gradient(90deg,#facc15,#f97316);color:#0f172a;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:700;text-transform:uppercase;">TOP</span>` : ""}
               </div>`
             : ""

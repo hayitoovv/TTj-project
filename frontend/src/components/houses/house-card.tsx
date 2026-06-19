@@ -1,29 +1,47 @@
-import { Bed, ImageIcon, MapPin, Star } from "lucide-react";
+import { Bed, ImageIcon, Lock, MapPin, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 import { FavoriteButton } from "@/components/houses/favorite-button";
 import type { HouseListItem } from "@/lib/api/types";
-import { formatPrice } from "@/lib/utils";
+import { fullUploadUrl } from "@/lib/api/uploads";
+import { cn, formatPrice } from "@/lib/utils";
 
 export function HouseCard({ house }: { house: HouseListItem }) {
+  const isRented = house.status === "rented";
+
   return (
-    <Link
-      href={`/houses/${house.id}`}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border bg-card transition-all hover:-translate-y-1 hover:shadow-xl"
-    >
-      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+    <article className="group relative flex flex-col overflow-hidden rounded-2xl border bg-card transition-all hover:-translate-y-1 hover:shadow-xl">
+      <Link
+        href={`/houses/${house.id}`}
+        aria-label={house.title}
+        className="absolute inset-0 z-0"
+      />
+
+      <div className="pointer-events-none relative aspect-[4/3] overflow-hidden bg-muted">
         {house.main_photo ? (
           <Image
-            src={house.main_photo}
+            src={fullUploadUrl(house.main_photo) ?? house.main_photo}
             alt={house.title}
             fill
             sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className={cn(
+              "object-cover transition-transform duration-500 group-hover:scale-105",
+              isRented && "grayscale-[40%]",
+            )}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-100 to-yellow-100">
             <ImageIcon className="h-12 w-12 text-muted-foreground/40" />
+          </div>
+        )}
+
+        {isRented && (
+          <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 backdrop-blur-[1px]">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-500 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg">
+              <Lock className="h-3.5 w-3.5" />
+              Ijaraga olingan
+            </span>
           </div>
         )}
 
@@ -47,19 +65,19 @@ export function HouseCard({ house }: { house: HouseListItem }) {
             <span className="text-muted-foreground">({house.reviews_count})</span>
           </div>
         )}
-
-        {/* Favorite button */}
-        <div className="absolute right-3 top-3">
-          <FavoriteButton
-            houseId={house.id}
-            initiallyFavorited={house.is_favorited ?? false}
-            size="sm"
-            variant="floating"
-          />
-        </div>
       </div>
 
-      <div className="flex flex-1 flex-col p-4">
+      {/* Favorite button — sibling of the Link so its clicks never bubble to navigation */}
+      <div className="pointer-events-auto absolute right-3 top-3 z-10">
+        <FavoriteButton
+          houseId={house.id}
+          initiallyFavorited={house.is_favorited ?? false}
+          size="sm"
+          variant="floating"
+        />
+      </div>
+
+      <div className="pointer-events-none relative flex flex-1 flex-col p-4">
         <div className="flex items-start justify-between gap-3">
           <h3 className="line-clamp-1 font-semibold leading-tight">{house.title}</h3>
         </div>
@@ -89,7 +107,7 @@ export function HouseCard({ house }: { house: HouseListItem }) {
           </div>
         </div>
       </div>
-    </Link>
+    </article>
   );
 }
 

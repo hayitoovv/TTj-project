@@ -55,7 +55,25 @@
       "Bash(cp -r \"C:/Users/behru/.agents/skills/caveman\" \"C:/Users/behru/.claude/skills/\")",
       "Bash(head -2)",
       "Bash(sleep 1)",
-      "Bash(echo \"✅ Backend ready\")"
+      "Bash(echo \"✅ Backend ready\")",
+      "Bash(docker exec *)",
+      "Bash(npx tsc *)",
+      "Bash(pip list *)",
+      "Bash(docker restart *)",
+      "Bash(xargs grep -l \"favorites\")",
+      "Bash(grep -oE 'error[^\"<]{0,200}')",
+      "PowerShell(Get-NetTCPConnection *)",
+      "PowerShell(Stop-Process *)",
+      "PowerShell(npm run *)",
+      "PowerShell(try { $r = Invoke-WebRequest http://localhost:3000/dashboard/houses -UseBasicParsing -TimeoutSec 30; \"Status: $\\($r.StatusCode\\), Length: $\\($r.Content.Length\\) bytes\" } catch { \"ERROR: $_\" })",
+      "PowerShell(try { $r = Invoke-WebRequest http://localhost:3000/houses -UseBasicParsing -TimeoutSec 30; \"Houses page: $\\($r.StatusCode\\)\" } catch { \"ERROR: $_\" }; try { $r = Invoke-WebRequest http://localhost:3000/dashboard/profile -UseBasicParsing -TimeoutSec 30; \"Profile page: $\\($r.StatusCode\\)\" } catch { \"ERROR: $_\" })",
+      "PowerShell(\\(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Measure-Object\\).Count)",
+      "PowerShell(try { $r = Invoke-WebRequest \"http://localhost:3000/_next/image?url=http%3A%2F%2Flocalhost%3A8000%2Fuploads%2Fhouses%2Ftest.jpg&w=640&q=75\" -UseBasicParsing -TimeoutSec 10 -ErrorAction Stop; \"Status: $\\($r.StatusCode\\)\" } catch { \"Status: $\\($_.Exception.Response.StatusCode.value__\\) — $\\($_.Exception.Message\\)\" })",
+      "PowerShell(try { $r = Invoke-WebRequest \"http://localhost:8000/uploads/\" -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop; \"Backend uploads reachable: $\\($r.StatusCode\\)\" } catch { \"Backend: $\\($_.Exception.Response.StatusCode.value__\\)\" })",
+      "PowerShell($pid_ = \\(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue\\).OwningProcess; if \\($pid_\\) { Stop-Process -Id $pid_ -Force; \"Killed PID $pid_\" } else { \"No process on port 3000\" })",
+      "Read(//c/Users/behru/AppData/Local/Temp/claude/D--PROJECTS-TTJ-platforma/c23d2177-e318-4639-a364-136c9557f717/tasks/**)",
+      "PowerShell(try { $r = Invoke-WebRequest \"http://localhost:3000/_next/image?url=http%3A%2F%2Flocalhost%3A8000%2Fuploads%2Fhouses%2Ftest.jpg&w=640&q=75\" -UseBasicParsing -TimeoutSec 15 -ErrorAction Stop; \"Status: $\\($r.StatusCode\\)\" } catch { \"Status: $\\($_.Exception.Response.StatusCode.value__\\)\" })",
+      "PowerShell(try { $r = Invoke-WebRequest \"http://localhost:3000/_next/image?url=http%3A%2F%2Flocalhost%3A8000%2Fuploads%2Fhouses%2F31a3cc65ce5c240f60400bdbc0a6901f.jpg&w=640&q=75\" -UseBasicParsing -TimeoutSec 15 -ErrorAction Stop; \"Status: $\\($r.StatusCode\\), Type: $\\($r.Headers['Content-Type']\\), Size: $\\($r.RawContentLength\\) bytes\" } catch { \"Status: $\\($_.Exception.Response.StatusCode.value__\\) — $\\($_.Exception.Message\\)\" })"
     ]
   }
 }

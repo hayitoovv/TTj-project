@@ -4,10 +4,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Calendar,
   CheckCircle2,
+  ChevronRight,
   ClipboardList,
   CreditCard,
   FileText,
   MapPin,
+  Star,
   ThumbsUp,
   User,
   XCircle,
@@ -17,9 +19,11 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { PaymentModal } from "@/components/bookings/payment-modal";
+import { StartChatButton } from "@/components/chat/start-chat-button";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { ReviewForm } from "@/components/reviews/review-form";
 import { ReviewList } from "@/components/reviews/review-list";
+import { UserProfileModal } from "@/components/reviews/user-profile-modal";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { bookingsApi } from "@/lib/api/bookings";
@@ -44,6 +48,7 @@ export default function BookingDetailPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [payOpen, setPayOpen] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const onSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ["bookings"] });
@@ -175,17 +180,27 @@ export default function BookingDetailPage() {
           </Section>
 
           {/* Student info — visible for landlord */}
-          {isLandlord && booking.student_name && (
+          {isLandlord && booking.student_id && (
             <Section title="Talaba" icon={User}>
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-yellow-400 text-white font-bold">
-                  {booking.student_name.charAt(0).toUpperCase()}
+              <button
+                type="button"
+                onClick={() => setProfileOpen(true)}
+                className="group flex w-full items-center gap-3 rounded-xl border border-transparent p-2 -m-2 text-left transition hover:border-border hover:bg-muted/40"
+              >
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-yellow-400 text-white font-bold">
+                  {(booking.student_name ?? "T").charAt(0).toUpperCase()}
                 </div>
-                <div>
-                  <p className="font-semibold">{booking.student_name}</p>
-                  <p className="text-xs text-muted-foreground">Talaba</p>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold">
+                    {booking.student_name ?? "Talaba"}
+                  </p>
+                  <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground">
+                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                    Profilni ko&apos;rish va sharhlar
+                  </p>
                 </div>
-              </div>
+                <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-foreground" />
+              </button>
             </Section>
           )}
 
@@ -320,6 +335,19 @@ export default function BookingDetailPage() {
                 Bekor qilish
               </Button>
             )}
+            {(() => {
+              const isStudent = user?.role === "student";
+              const peerId = isStudent ? booking.landlord_id : booking.student_id;
+              const label = isStudent ? "Uy egasi bilan yozish" : "Talaba bilan yozish";
+              return peerId ? (
+                <StartChatButton
+                  peerId={peerId}
+                  bookingId={booking.id}
+                  label={label}
+                  variant="outline"
+                />
+              ) : null;
+            })()}
             <Button asChild variant="ghost" className="w-full">
               <Link href={`/houses/${booking.house_id}`}>Uyni ko&apos;rish</Link>
             </Button>
@@ -341,6 +369,16 @@ export default function BookingDetailPage() {
         error={payError}
         onSubmit={(gateway) => payMutation.mutate(gateway)}
       />
+
+      {isLandlord && booking.student_id && (
+        <UserProfileModal
+          open={profileOpen}
+          onClose={() => setProfileOpen(false)}
+          userId={booking.student_id}
+          name={booking.student_name ?? "Talaba"}
+          role="student"
+        />
+      )}
 
       {/* Reason modal (cancel or reject) */}
       {modalConfig && (

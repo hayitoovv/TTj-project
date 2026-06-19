@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { bookingsApi } from "@/lib/api/bookings";
 import { extractApiError } from "@/lib/api/client";
 import { useBookingEstimate, useHouse } from "@/lib/api/hooks";
+import { fullUploadUrl } from "@/lib/api/uploads";
 import { formatPrice } from "@/lib/utils";
 
 const MAX_ADVANCE_DAYS = 2;
@@ -118,7 +119,8 @@ function NewBookingContent() {
             <div className="flex items-center gap-4 rounded-2xl border bg-card p-4">
               <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-blue-100 to-yellow-100">
                 {house.main_photo && (
-                  <img src={house.main_photo} alt="" className="h-full w-full object-cover" />
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={fullUploadUrl(house.main_photo) ?? house.main_photo} alt="" className="h-full w-full object-cover" />
                 )}
               </div>
               <div className="min-w-0 flex-1">

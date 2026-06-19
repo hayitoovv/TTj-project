@@ -71,6 +71,7 @@ const GATEWAYS: { value: PaymentGateway; label: string; color: string }[] = [
 export default function SubscriptionPage() {
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
+  const fetchMe = useAuthStore((s) => s.fetchMe);
   const { data: statusData } = useSubscriptionStatus();
   const { data: history } = useMySubscriptions();
 
@@ -86,8 +87,11 @@ export default function SubscriptionPage() {
         period,
         gateway,
       }),
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+      // Auth store'dagi user'ni yangilash kerak — landlord_profile.is_pro yangilangani
+      // boshqa joylarda (dashboard, sidebar) darhol aks etsin.
+      await fetchMe();
       setSelectedPlan(null);
     },
     onError: (e) => setError(extractApiError(e)),

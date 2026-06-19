@@ -6,6 +6,7 @@ import Link from "next/link";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { useBookings } from "@/lib/api/hooks";
 import type { BookingListItem } from "@/lib/api/types";
+import { fullUploadUrl } from "@/lib/api/uploads";
 import { cn, formatPrice } from "@/lib/utils";
 
 const PLATFORM_FEE_PERCENT = 1.5;
@@ -145,7 +146,7 @@ export default function LandlordPayments() {
                   <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-blue-100 to-yellow-100">
                     {b.house_photo ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={b.house_photo} alt="" className="h-full w-full object-cover" />
+                      <img src={fullUploadUrl(b.house_photo) ?? b.house_photo} alt="" className="h-full w-full object-cover" />
                     ) : (
                       <ImageIcon className="absolute inset-0 m-auto h-6 w-6 text-muted-foreground/40" />
                     )}

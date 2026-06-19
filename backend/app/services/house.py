@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
 from sqlalchemy import and_, case, delete, func, or_, select
@@ -31,7 +31,7 @@ from app.schemas.house import (
     HouseUpdate,
 )
 
-FREE_LISTINGS_LIMIT = 5
+FREE_LISTINGS_LIMIT = 1
 EARTH_RADIUS_KM = 6371.0
 
 
@@ -72,7 +72,7 @@ async def _load_house(session: AsyncSession, house_id: int, *, with_landlord: bo
         .where(House.id == house_id)
     )
     if with_landlord:
-        stmt = stmt.options(selectinload(House.landlord))
+        stmt = stmt.options(selectinload(House.landlord).selectinload(User.landlord_profile))
     house = (await session.execute(stmt)).scalar_one_or_none()
     if not house:
         raise HouseError("House not found", code="not_found", http_status=status.HTTP_404_NOT_FOUND)
@@ -90,7 +90,14 @@ async def _get_landlord_profile(session: AsyncSession, user_id: int) -> Landlord
 def _is_pro_active(profile: LandlordProfile) -> bool:
     if not profile.is_pro:
         return False
-    return profile.pro_until is None or profile.pro_until > datetime.utcnow()
+    if profile.pro_until is None:
+        return True
+    # pro_until is DateTime(timezone=True) — compare with timezone-aware now.
+    now = datetime.now(timezone.utc)
+    pro_until = profile.pro_until
+    if pro_until.tzinfo is None:
+        pro_until = pro_until.replace(tzinfo=timezone.utc)
+    return pro_until > now
 
 
 async def _set_amenities(session: AsyncSession, house: House, amenity_ids: list[int]) -> None:
@@ -138,11 +145,15 @@ def _to_list_item(house: House, distance_km: float | None = None) -> HouseListIt
 def _to_detail(house: House) -> HouseDetail:
     landlord_name = None
     landlord_avatar = None
+    landlord_is_pro = False
     if house.landlord:
         first = house.landlord.first_name or ""
         last = house.landlord.last_name or ""
         landlord_name = (first + " " + last).strip() or None
         landlord_avatar = house.landlord.avatar_url
+        profile = house.landlord.landlord_profile
+        if profile is not None:
+            landlord_is_pro = _is_pro_active(profile)
 
     return HouseDetail(
         id=house.id,
@@ -171,6 +182,7 @@ def _to_detail(house: House) -> HouseDetail:
         landlord_id=house.landlord_id,
         landlord_name=landlord_name,
         landlord_avatar=landlord_avatar,
+        landlord_is_pro=landlord_is_pro,
         photos=[HousePhotoRead.model_validate(p) for p in house.photos],
         amenities=[a for a in house.amenities],
     )
@@ -191,7 +203,7 @@ async def list_houses(
     elif viewer and viewer.role == UserRole.ADMIN:
         pass
     else:
-        stmt = stmt.where(House.status == HouseStatus.APPROVED)
+        stmt = stmt.where(House.status.in_((HouseStatus.APPROVED, HouseStatus.RENTED)))
 
     if filters.q:
         like = f"%{filters.q.lower()}%"
@@ -235,9 +247,12 @@ async def list_houses(
     total = (await session.execute(count_stmt)).scalar_one()
 
     top_order = case((House.is_top.is_(True), 0), else_=1)
-    # For default sort, smart ranking: TOP first, then by rating, then newest
+    # Available (APPROVED) houses always before RENTED ones
+    availability_order = case((House.status == HouseStatus.RENTED, 1), else_=0)
+    # For default sort, smart ranking: available > TOP > rating > newest
     if filters.sort == "created_desc":
         stmt = stmt.order_by(
+            availability_order,
             top_order,
             House.average_rating.desc(),
             House.reviews_count.desc(),
@@ -253,9 +268,9 @@ async def list_houses(
         }
         sort_clause = order_map.get(filters.sort, House.created_at.desc())
         if isinstance(sort_clause, tuple):
-            stmt = stmt.order_by(top_order, *sort_clause)
+            stmt = stmt.order_by(availability_order, top_order, *sort_clause)
         else:
-            stmt = stmt.order_by(top_order, sort_clause)
+            stmt = stmt.order_by(availability_order, top_order, sort_clause)
 
     offset = (filters.page - 1) * filters.page_size
     stmt = stmt.offset(offset).limit(filters.page_size)
@@ -296,7 +311,8 @@ async def get_house(session: AsyncSession, house_id: int, *, viewer: User | None
 
     is_landlord_owner = viewer and viewer.id == house.landlord_id
     is_admin = viewer and viewer.role == UserRole.ADMIN
-    if house.status != HouseStatus.APPROVED and not (is_landlord_owner or is_admin):
+    publicly_visible = (HouseStatus.APPROVED, HouseStatus.RENTED)
+    if house.status not in publicly_visible and not (is_landlord_owner or is_admin):
         raise HouseError("House not found", code="not_found", http_status=status.HTTP_404_NOT_FOUND)
 
     if not is_landlord_owner and not is_admin:
@@ -304,6 +320,17 @@ async def get_house(session: AsyncSession, house_id: int, *, viewer: User | None
         await session.commit()
 
     detail = _to_detail(house)
+
+    # Landlord phone: visible only to PRO viewers (or to the landlord themselves / admin).
+    # Skrinshot spec: "Cheksiz chat va kontakt ko'rish" — PRO only.
+    if is_landlord_owner or is_admin:
+        detail.landlord_phone = house.landlord.phone if house.landlord else None
+    elif viewer is not None:
+        from app.services.subscription import get_active_subscription
+        sub = await get_active_subscription(session, viewer.id)
+        if sub is not None:
+            detail.landlord_phone = house.landlord.phone if house.landlord else None
+
     if viewer:
         from app.models import Favorite
         fav_stmt = select(Favorite.id).where(

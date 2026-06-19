@@ -33,7 +33,13 @@ export function Navbar() {
         </Link>
 
         {!isDashboard && (
-          <nav className="hidden items-center gap-8 text-sm font-medium md:flex">
+          <nav className="hidden items-center gap-7 text-sm font-medium lg:flex">
+            <Link
+              href="/houses"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Uylar
+            </Link>
             <Link
               href="/#features"
               className="text-muted-foreground transition-colors hover:text-foreground"
@@ -53,10 +59,10 @@ export function Navbar() {
               Narxlar
             </Link>
             <Link
-              href="/houses"
+              href="/#faq"
               className="text-muted-foreground transition-colors hover:text-foreground"
             >
-              Uylar
+              FAQ
             </Link>
           </nav>
         )}

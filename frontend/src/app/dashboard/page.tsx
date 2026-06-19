@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { Sparkles } from "lucide-react";
 
 import { AdminDashboard } from "@/components/dashboard/admin-dashboard";
@@ -10,6 +11,7 @@ import { RefundCard } from "@/components/dashboard/refund-card";
 import { StatusCards } from "@/components/dashboard/status-cards";
 import { TipsSection } from "@/components/dashboard/tips-section";
 import { WelcomeCard } from "@/components/dashboard/welcome-card";
+import { favoritesApi } from "@/lib/api/favorites";
 import { useBookings } from "@/lib/api/hooks";
 import type { UserResponse } from "@/lib/api/types";
 import { useAuthStore } from "@/stores/auth";
@@ -36,13 +38,17 @@ export default function DashboardPage() {
 
 function StudentDashboard({ user }: { user: UserResponse }) {
   const { data: bookings } = useBookings();
+  const { data: favorites } = useQuery({
+    queryKey: ["favorites", "list", { page_size: 1 }],
+    queryFn: () => favoritesApi.list({ page_size: 1 }),
+  });
   const items = bookings?.items ?? [];
   const latest = [...items].sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <WelcomeCard user={user} />
-      <StatusCards latestBooking={latest} savedCount={0} />
+      <StatusCards latestBooking={latest} savedCount={favorites?.total ?? 0} />
       <RefundCard />
       <RecommendedHouses />
       <TipsSection />

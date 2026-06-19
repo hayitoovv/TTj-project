@@ -127,6 +127,8 @@ class HouseDetail(HouseListItem):
     landlord_id: int
     landlord_name: str | None = None
     landlord_avatar: str | None = None
+    landlord_phone: str | None = None  # only set for PRO viewers (or the landlord themselves)
+    landlord_is_pro: bool = False
 
     photos: list[HousePhotoRead] = []
     amenities: list[AmenityRead] = []

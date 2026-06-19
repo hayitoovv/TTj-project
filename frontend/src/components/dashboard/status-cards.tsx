@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import type { BookingListItem } from "@/lib/api/types";
+import { fullUploadUrl } from "@/lib/api/uploads";
 import { cn } from "@/lib/utils";
 
 export function StatusCards({
@@ -27,7 +28,7 @@ export function StatusCards({
                 {latestBooking.house_photo && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={latestBooking.house_photo}
+                    src={fullUploadUrl(latestBooking.house_photo) ?? latestBooking.house_photo}
                     alt=""
                     className="h-full w-full object-cover"
                   />

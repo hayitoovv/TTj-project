@@ -6,8 +6,11 @@ import {
   Building2,
   Calendar,
   CheckCircle2,
+  Crown,
   Eye,
+  Lock,
   MapPin,
+  Phone,
   Ruler,
   ShieldCheck,
   Star,
@@ -16,12 +19,15 @@ import {
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
+import { StartChatButton } from "@/components/chat/start-chat-button";
+import { ProBadge } from "@/components/dashboard/pro-badge";
 import { FavoriteButton } from "@/components/houses/favorite-button";
 import { PhotoGallery } from "@/components/houses/photo-gallery";
 import { SingleHouseMap } from "@/components/maps/single-house-map";
 import { ReviewList } from "@/components/reviews/review-list";
 import { Button } from "@/components/ui/button";
 import { useHouse } from "@/lib/api/hooks";
+import { fullUploadUrl } from "@/lib/api/uploads";
 import { formatPrice } from "@/lib/utils";
 
 export default function HouseDetailPage() {
@@ -187,29 +193,111 @@ export default function HouseDetailPage() {
                 <Row icon={CheckCircle2} text="24 soatlik refund" />
               </div>
 
-              <Button asChild size="lg" className="mt-6 w-full shadow-lg shadow-blue-500/20">
-                <Link href={`/bookings/new?house_id=${data.id}`}>Bron qilish</Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="mt-2 w-full">
-                <Link href={`/chat?landlord=${data.landlord_id}`}>
-                  Uy egasi bilan chat
-                </Link>
-              </Button>
+              {data.status === "rented" ? (
+                <div className="mt-6 rounded-xl border-2 border-orange-300 bg-orange-50 p-4 text-center">
+                  <p className="text-sm font-bold text-orange-900">
+                    🔒 Hozirda ijaraga olingan
+                  </p>
+                  <p className="mt-1 text-xs text-orange-700">
+                    Bu uy hozircha boshqa talaba tomonidan ijaraga olingan.
+                    Ijara tugagach yana ochiladi.
+                  </p>
+                </div>
+              ) : (
+                <Button asChild size="lg" className="mt-6 w-full shadow-lg shadow-blue-500/20">
+                  <Link href={`/bookings/new?house_id=${data.id}`}>Bron qilish</Link>
+                </Button>
+              )}
+              <div className="mt-2">
+                <StartChatButton
+                  peerId={data.landlord_id}
+                  label="Uy egasi bilan chat"
+                  variant="outline"
+                  size="lg"
+                />
+              </div>
             </div>
 
             {/* Landlord card */}
-            <div className="rounded-2xl border bg-card p-5">
+            <div
+              className={
+                data.landlord_is_pro
+                  ? "rounded-2xl border border-yellow-300 bg-gradient-to-br from-yellow-50/40 to-card p-5 ring-1 ring-yellow-300/30"
+                  : "rounded-2xl border bg-card p-5"
+              }
+            >
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Uy egasi
               </p>
               <div className="mt-3 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-yellow-400 text-white font-bold">
-                  {(data.landlord_name ?? "U")[0]?.toUpperCase()}
+                <div className="relative">
+                  {data.landlord_avatar ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={fullUploadUrl(data.landlord_avatar) ?? data.landlord_avatar}
+                      alt=""
+                      className={
+                        data.landlord_is_pro
+                          ? "h-12 w-12 rounded-full object-cover ring-2 ring-yellow-400"
+                          : "h-12 w-12 rounded-full object-cover"
+                      }
+                    />
+                  ) : (
+                    <div
+                      className={
+                        data.landlord_is_pro
+                          ? "flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-yellow-400 font-bold text-white ring-2 ring-yellow-400"
+                          : "flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-yellow-400 font-bold text-white"
+                      }
+                    >
+                      {(data.landlord_name ?? "U")[0]?.toUpperCase()}
+                    </div>
+                  )}
+                  {data.landlord_is_pro && (
+                    <span
+                      aria-label="PRO"
+                      className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 ring-2 ring-card"
+                    >
+                      <Crown className="h-3 w-3 text-foreground" />
+                    </span>
+                  )}
                 </div>
                 <div>
-                  <p className="font-semibold">{data.landlord_name ?? "Uy egasi"}</p>
-                  <p className="text-xs text-muted-foreground">Tasdiqlangan</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-semibold">{data.landlord_name ?? "Uy egasi"}</p>
+                    {data.landlord_is_pro && <ProBadge size="sm" />}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {data.landlord_is_pro ? "Ishonchli uy egasi" : "Tasdiqlangan"}
+                  </p>
                 </div>
+              </div>
+
+              {/* Contact (phone) — PRO only */}
+              <div className="mt-4 rounded-xl border bg-muted/30 p-3">
+                {data.landlord_phone ? (
+                  <a
+                    href={`tel:${data.landlord_phone}`}
+                    className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary"
+                  >
+                    <Phone className="h-4 w-4 text-primary" />
+                    {data.landlord_phone}
+                  </a>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Lock className="h-4 w-4" />
+                      <span className="font-mono tracking-wider">+998 •• ••• •• ••</span>
+                    </div>
+                    <Link
+                      href="/dashboard/subscription"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-yellow-400 to-orange-500 px-3 py-1.5 text-xs font-bold text-foreground shadow-sm transition hover:shadow-md"
+                    >
+                      <Crown className="h-3 w-3" />
+                      PRO ga o&apos;tib raqamni ko&apos;ring
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </div>

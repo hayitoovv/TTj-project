@@ -9,6 +9,7 @@ import { useEffect, useMemo } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
 import type { HouseListItem } from "@/lib/api/types";
+import { fullUploadUrl } from "@/lib/api/uploads";
 import { formatPrice } from "@/lib/utils";
 
 // Fix default marker icon (Leaflet expects images path)
@@ -102,7 +103,7 @@ function HousePopup({ house }: { house: HouseListItem }) {
       <div className="relative aspect-[16/10] overflow-hidden rounded-md bg-muted">
         {house.main_photo ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={house.main_photo} alt="" className="h-full w-full object-cover" />
+          <img src={fullUploadUrl(house.main_photo) ?? house.main_photo} alt="" className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full items-center justify-center bg-gradient-to-br from-blue-100 to-yellow-100">
             <ImageIcon className="h-8 w-8 text-muted-foreground/40" />

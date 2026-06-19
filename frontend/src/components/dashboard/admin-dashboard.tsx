@@ -19,6 +19,7 @@ import { WelcomeCard } from "@/components/dashboard/welcome-card";
 import { Button } from "@/components/ui/button";
 import { useAdminHouses, useAdminStats } from "@/lib/api/hooks";
 import type { UserResponse } from "@/lib/api/types";
+import { fullUploadUrl } from "@/lib/api/uploads";
 import { cn, formatPrice } from "@/lib/utils";
 
 export function AdminDashboard({ user }: { user: UserResponse }) {
@@ -162,7 +163,7 @@ export function AdminDashboard({ user }: { user: UserResponse }) {
                   <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-blue-100 to-yellow-100">
                     {h.main_photo && (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={h.main_photo} alt="" className="h-full w-full object-cover" />
+                      <img src={fullUploadUrl(h.main_photo) ?? h.main_photo} alt="" className="h-full w-full object-cover" />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">

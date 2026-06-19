@@ -5,6 +5,7 @@ from app.api.v1.endpoints import (
     amenities,
     auth,
     bookings,
+    chats,
     complaints,
     curator,
     favorites,
@@ -30,4 +31,5 @@ api_router.include_router(curator.router)
 api_router.include_router(favorites.router)
 api_router.include_router(subscriptions.router)
 api_router.include_router(uploads.router)
+api_router.include_router(chats.router)
 api_router.include_router(admin.router)

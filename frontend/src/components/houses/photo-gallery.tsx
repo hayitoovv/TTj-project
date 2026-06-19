@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 
 import type { HousePhotoRead } from "@/lib/api/types";
+import { fullUploadUrl } from "@/lib/api/uploads";
 
 export function PhotoGallery({ photos, title }: { photos: HousePhotoRead[]; title: string }) {
   const sorted = [...photos].sort(
@@ -28,7 +29,7 @@ export function PhotoGallery({ photos, title }: { photos: HousePhotoRead[]; titl
     <div className="grid gap-2">
       <div className="relative aspect-[16/9] overflow-hidden rounded-2xl bg-muted">
         <Image
-          src={main.url}
+          src={fullUploadUrl(main.url) ?? main.url}
           alt={title}
           fill
           sizes="(min-width: 1024px) 67vw, 100vw"
@@ -68,7 +69,7 @@ export function PhotoGallery({ photos, title }: { photos: HousePhotoRead[]; titl
                 i === current ? "ring-2 ring-primary" : "opacity-70 hover:opacity-100"
               }`}
             >
-              <Image src={p.url} alt="" fill sizes="20vw" className="object-cover" />
+              <Image src={fullUploadUrl(p.url) ?? p.url} alt="" fill sizes="20vw" className="object-cover" />
             </button>
           ))}
         </div>

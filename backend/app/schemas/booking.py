@@ -71,6 +71,8 @@ class BookingDetail(BookingListItem):
     cancellation_reason: str | None = None
     cancelled_at: datetime | None = None
     contract: ContractRead | None = None
+    landlord_id: int | None = None
+    landlord_name: str | None = None
 
 
 class BookingFeeEstimate(BaseModel):

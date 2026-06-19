@@ -1,6 +1,7 @@
 import { Sparkles } from "lucide-react";
 
 import type { UserResponse } from "@/lib/api/types";
+import { fullUploadUrl } from "@/lib/api/uploads";
 
 interface Stat {
   label: string;
@@ -29,7 +30,7 @@ export function ProfileHero({ user, stats, premium = false }: ProfileHeroProps) 
           {user.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={user.avatar_url}
+              src={fullUploadUrl(user.avatar_url) ?? user.avatar_url}
               alt=""
               className="h-24 w-24 rounded-full object-cover ring-4 ring-background"
             />

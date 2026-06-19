@@ -2,7 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    // Next.js 16: allow optimizing images from private IPs (localhost backend in dev)
+    dangerouslyAllowLocalIP: true,
     remotePatterns: [
+      // Backend uploads (development)
+      { protocol: "http", hostname: "localhost", port: "8000" },
+      { protocol: "http", hostname: "127.0.0.1", port: "8000" },
+
       // Bizning seed/test rasmlar
       { protocol: "https", hostname: "picsum.photos" },
       { protocol: "https", hostname: "fastly.picsum.photos" },

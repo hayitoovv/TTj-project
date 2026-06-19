@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Heart, Loader2 } from "lucide-react";
 import { useState } from "react";
 
+import { extractApiError } from "@/lib/api/client";
 import { favoritesApi } from "@/lib/api/favorites";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth";
@@ -36,22 +37,21 @@ export function FavoriteButton({
   const isFavorited = optimistic ?? initiallyFavorited;
 
   const mutation = useMutation({
-    mutationFn: async () => {
-      if (isFavorited) {
-        await favoritesApi.remove(houseId);
-      } else {
+    mutationFn: async (willFavorite: boolean) => {
+      if (willFavorite) {
         await favoritesApi.add(houseId);
+      } else {
+        await favoritesApi.remove(houseId);
       }
-    },
-    onMutate: async () => {
-      setOptimistic(!isFavorited);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["houses"] });
       queryClient.invalidateQueries({ queryKey: ["favorites"] });
     },
-    onError: () => {
-      setOptimistic(initiallyFavorited);
+    onError: (err, willFavorite) => {
+      console.error("[favorite] mutation failed:", extractApiError(err), err);
+      setOptimistic(!willFavorite);
+      window.alert(`Xatolik: ${extractApiError(err)}`);
     },
   });
 
@@ -62,7 +62,9 @@ export function FavoriteButton({
       window.location.href = "/login";
       return;
     }
-    mutation.mutate();
+    const willFavorite = !isFavorited;
+    setOptimistic(willFavorite);
+    mutation.mutate(willFavorite);
   };
 
   const s = SIZES[size];

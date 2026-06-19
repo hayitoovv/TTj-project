@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { useHouses } from "@/lib/api/hooks";
 import type { HouseListItem } from "@/lib/api/types";
+import { fullUploadUrl } from "@/lib/api/uploads";
 import { formatPrice } from "@/lib/utils";
 
 export function RecommendedHouses() {
@@ -63,7 +64,7 @@ function MiniHouseCard({ house }: { house: HouseListItem }) {
         {house.main_photo ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={house.main_photo}
+            src={fullUploadUrl(house.main_photo) ?? house.main_photo}
             alt={house.title}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />

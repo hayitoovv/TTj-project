@@ -160,6 +160,8 @@ export interface HouseDetail extends HouseListItem {
   landlord_id: number;
   landlord_name?: string | null;
   landlord_avatar?: string | null;
+  landlord_phone?: string | null;
+  landlord_is_pro?: boolean;
   photos: HousePhotoRead[];
   amenities: AmenityRead[];
 }
@@ -221,6 +223,8 @@ export interface BookingDetail extends BookingListItem {
   cancellation_reason?: string | null;
   cancelled_at?: string | null;
   contract?: ContractRead | null;
+  landlord_id?: number | null;
+  landlord_name?: string | null;
 }
 
 // ---------- Review ----------

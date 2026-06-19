@@ -2,6 +2,7 @@ import { formatDistanceToNow } from "date-fns";
 
 import { StarRating } from "@/components/reviews/star-rating";
 import type { ReviewRead } from "@/lib/api/types";
+import { fullUploadUrl } from "@/lib/api/uploads";
 
 const ROLE_LABELS: Record<string, string> = {
   student: "Talaba",
@@ -22,7 +23,7 @@ export function ReviewCard({ review }: { review: ReviewRead }) {
         {r.avatar_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={r.avatar_url}
+            src={fullUploadUrl(r.avatar_url) ?? r.avatar_url}
             alt=""
             className="h-10 w-10 rounded-full object-cover"
           />

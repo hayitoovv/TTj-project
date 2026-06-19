@@ -4,24 +4,30 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Building2,
   Calendar,
+  Crown,
   Edit,
   GraduationCap,
+  ImagePlus,
   Loader2,
   Mail,
   Phone,
   Save,
   ShieldCheck,
+  Trash2,
   User as UserIcon,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
+import { ProBadge } from "@/components/dashboard/pro-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authApi, type UserUpdateInput, type StudentProfileUpdateInput, type LandlordProfileUpdateInput, type CuratorProfileUpdateInput } from "@/lib/api/auth";
 import { extractApiError } from "@/lib/api/client";
+import { useSubscriptionStatus } from "@/lib/api/hooks";
 import type { UserResponse } from "@/lib/api/types";
+import { fullUploadUrl, uploadsApi } from "@/lib/api/uploads";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth";
 
@@ -36,6 +42,8 @@ export default function ProfilePage() {
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
+  const { data: subscriptionStatus } = useSubscriptionStatus();
+  const isPro = Boolean(subscriptionStatus?.is_pro);
 
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -150,24 +158,52 @@ export default function ProfilePage() {
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Header card */}
-      <div className="relative overflow-hidden rounded-2xl border bg-card p-6 sm:p-8">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-brand" />
+      <div
+        className={cn(
+          "relative overflow-hidden rounded-2xl border bg-card p-6 sm:p-8",
+          isPro && "border-yellow-300 ring-1 ring-yellow-300/30",
+        )}
+      >
+        <div
+          className={cn(
+            "pointer-events-none absolute inset-x-0 top-0 h-32",
+            isPro
+              ? "bg-gradient-to-r from-yellow-400 via-orange-400 to-orange-500"
+              : "bg-gradient-brand",
+          )}
+        />
         <div className="relative flex flex-wrap items-end gap-5 pt-12 sm:pt-16">
-          <div className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-background bg-gradient-to-br from-blue-500 to-yellow-400 text-2xl font-extrabold text-white">
-            {user.avatar_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={user.avatar_url}
-                alt=""
-                className="h-full w-full rounded-full object-cover"
-              />
-            ) : (
-              initial
+          <div className="relative">
+            <div
+              className={cn(
+                "flex h-24 w-24 items-center justify-center rounded-full border-4 border-background bg-gradient-to-br from-blue-500 to-yellow-400 text-2xl font-extrabold text-white",
+                isPro && "ring-2 ring-yellow-400",
+              )}
+            >
+              {user.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={fullUploadUrl(user.avatar_url) ?? user.avatar_url}
+                  alt=""
+                  className="h-full w-full rounded-full object-cover"
+                />
+              ) : (
+                initial
+              )}
+            </div>
+            {isPro && (
+              <span
+                aria-label="PRO"
+                className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 shadow-md ring-4 ring-background"
+              >
+                <Crown className="h-4 w-4 text-foreground" />
+              </span>
             )}
           </div>
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-extrabold tracking-tight">{fullName}</h1>
+              {isPro && <ProBadge size="md" />}
               {user.is_verified && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
                   <ShieldCheck className="h-3 w-3" /> Tasdiqlangan
@@ -180,6 +216,14 @@ export default function ProfilePage() {
                 year: "numeric",
                 month: "long",
               })}
+              {isPro && subscriptionStatus?.ends_at && (
+                <>
+                  {" · "}
+                  <span className="font-medium text-orange-700">
+                    PRO {subscriptionStatus.days_remaining} kun qoldi
+                  </span>
+                </>
+              )}
             </p>
           </div>
           {!editing ? (
@@ -242,8 +286,12 @@ export default function ProfilePage() {
         </Grid>
 
         {editing && (
-          <Field label="Avatar URL (ixtiyoriy)">
-            <Input value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} placeholder="https://..." />
+          <Field label="Profil rasmi">
+            <AvatarUploader
+              value={avatarUrl}
+              onChange={setAvatarUrl}
+              initial={initial}
+            />
           </Field>
         )}
       </Section>
@@ -383,4 +431,110 @@ function DisplayValue({ value, muted = false }: { value: string | null | undefin
     return <p className="text-sm text-muted-foreground/60 italic">—</p>;
   }
   return <p className={cn("text-sm font-medium", muted && "text-muted-foreground")}>{value}</p>;
+}
+
+function AvatarUploader({
+  value,
+  onChange,
+  initial,
+}: {
+  value: string;
+  onChange: (url: string) => void;
+  initial: string;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleFile = async (file: File | undefined) => {
+    if (!file) return;
+    setError(null);
+    setUploading(true);
+    try {
+      const result = await uploadsApi.uploadImage(file, "avatars");
+      onChange(result.url);
+    } catch (e) {
+      setError(extractApiError(e));
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  };
+
+  const previewSrc = value ? (fullUploadUrl(value) ?? value) : null;
+
+  return (
+    <div className="space-y-2">
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className="hidden"
+        onChange={(e) => handleFile(e.target.files?.[0])}
+      />
+
+      <div className="flex items-center gap-4">
+        <button
+          type="button"
+          onClick={() => !uploading && inputRef.current?.click()}
+          disabled={uploading}
+          className={cn(
+            "group relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-input bg-muted/30 text-xl font-extrabold text-muted-foreground transition",
+            !uploading && "hover:border-primary hover:text-primary",
+            uploading && "opacity-60",
+          )}
+          aria-label="Rasm yuklash"
+        >
+          {previewSrc ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={previewSrc} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <span>{initial}</span>
+          )}
+          {uploading ? (
+            <span className="absolute inset-0 flex items-center justify-center bg-foreground/40 text-white">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </span>
+          ) : (
+            <span className="absolute inset-0 flex items-center justify-center bg-foreground/40 text-white opacity-0 transition-opacity group-hover:opacity-100">
+              <ImagePlus className="h-6 w-6" />
+            </span>
+          )}
+        </button>
+
+        <div className="space-y-1.5">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => inputRef.current?.click()}
+            disabled={uploading}
+          >
+            <ImagePlus className="h-4 w-4" />
+            {value ? "O'zgartirish" : "Rasm tanlash"}
+          </Button>
+          {value && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => onChange("")}
+              disabled={uploading}
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+              O&apos;chirish
+            </Button>
+          )}
+          <p className="text-[11px] text-muted-foreground">JPG/PNG/WebP — max 10 MB</p>
+        </div>
+      </div>
+
+      {error && (
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+          {error}
+        </p>
+      )}
+    </div>
+  );
 }

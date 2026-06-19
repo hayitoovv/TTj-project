@@ -58,13 +58,16 @@ async def list_favorites(
             pages=0,
         )
 
-    # Query approved + favorited houses
+    # Query favorited houses — include both bookable (APPROVED) and currently
+    # rented (RENTED) so users keep visibility of their saves through a tenant
+    # cycle. Hide pending/rejected/inactive (admin-only states).
     from sqlalchemy import func
 
+    visible = (HouseStatus.APPROVED, HouseStatus.RENTED)
     stmt = (
         select(House)
         .options(selectinload(House.photos))
-        .where(House.id.in_(fav_ids), House.status == HouseStatus.APPROVED)
+        .where(House.id.in_(fav_ids), House.status.in_(visible))
     )
 
     from sqlalchemy import func as _f

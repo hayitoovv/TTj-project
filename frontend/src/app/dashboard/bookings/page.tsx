@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/dashboard/status-badge";
 import { Button } from "@/components/ui/button";
 import { useBookings } from "@/lib/api/hooks";
 import type { BookingStatus } from "@/lib/api/types";
+import { fullUploadUrl } from "@/lib/api/uploads";
 import { cn, formatPrice } from "@/lib/utils";
 
 const FILTERS: { value: "all" | BookingStatus; label: string }[] = [
@@ -80,7 +81,7 @@ export default function BookingsPage() {
             >
               <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-blue-100 to-yellow-100">
                 {b.house_photo && (
-                  <img src={b.house_photo} alt="" className="h-full w-full object-cover" />
+                  <img src={fullUploadUrl(b.house_photo) ?? b.house_photo} alt="" className="h-full w-full object-cover" />
                 )}
               </div>
 

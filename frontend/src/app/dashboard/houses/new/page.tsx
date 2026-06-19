@@ -1,10 +1,12 @@
 "use client";
 
+import axios from "axios";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { ProUpgradeModal } from "@/components/dashboard/pro-upgrade-modal";
 import { HouseForm } from "@/components/houses/house-form";
 import { extractApiError } from "@/lib/api/client";
 import { housesApi, type HouseCreateInput } from "@/lib/api/houses";
@@ -13,6 +15,7 @@ export default function NewHousePage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [proGateOpen, setProGateOpen] = useState(false);
 
   async function handleSubmit(data: HouseCreateInput) {
     setError(null);
@@ -21,7 +24,11 @@ export default function NewHousePage() {
       const created = await housesApi.create(data);
       router.push(`/dashboard/houses?created=${created.id}`);
     } catch (err) {
-      setError(extractApiError(err));
+      if (axios.isAxiosError(err) && err.response?.status === 402) {
+        setProGateOpen(true);
+      } else {
+        setError(extractApiError(err));
+      }
     } finally {
       setSubmitting(false);
     }
@@ -52,6 +59,11 @@ export default function NewHousePage() {
         submitLabel="E'lonni yuborish"
         isSubmitting={submitting}
         error={error}
+      />
+
+      <ProUpgradeModal
+        open={proGateOpen}
+        onClose={() => setProGateOpen(false)}
       />
     </div>
   );

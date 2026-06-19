@@ -100,6 +100,67 @@ async def _has_overlap(
     return result.scalar_one_or_none() is not None
 
 
+async def _has_active_for_house(
+    session: AsyncSession, house_id: int, exclude_id: int | None = None
+) -> bool:
+    """True if the house has any currently-ACTIVE booking."""
+    stmt = select(Booking.id).where(
+        Booking.house_id == house_id,
+        Booking.status == BookingStatus.ACTIVE,
+    )
+    if exclude_id is not None:
+        stmt = stmt.where(Booking.id != exclude_id)
+    result = await session.execute(stmt.limit(1))
+    return result.scalar_one_or_none() is not None
+
+
+async def _release_house_if_free(session: AsyncSession, house_id: int) -> None:
+    """If no ACTIVE bookings remain on the house, flip RENTED back to APPROVED."""
+    if await _has_active_for_house(session, house_id):
+        return
+    house = await session.get(House, house_id)
+    if house and house.status == HouseStatus.RENTED:
+        house.status = HouseStatus.APPROVED
+
+
+async def _auto_cancel_others(
+    session: AsyncSession, house_id: int, winner_booking_id: int
+) -> None:
+    """Cancel all other PENDING/CONFIRMED bookings on the house and notify students.
+
+    Called when one booking is paid → house becomes RENTED, so other unfulfilled
+    bookings can't proceed.
+    """
+    blocked = (BookingStatus.PENDING, BookingStatus.CONFIRMED)
+    stmt = (
+        select(Booking)
+        .options(selectinload(Booking.house))
+        .where(
+            Booking.house_id == house_id,
+            Booking.id != winner_booking_id,
+            Booking.status.in_(blocked),
+        )
+    )
+    others = (await session.execute(stmt)).scalars().all()
+    now = datetime.utcnow()
+    for b in others:
+        b.status = BookingStatus.CANCELLED
+        b.cancelled_at = now
+        b.cancellation_reason = "[system] Uy boshqa talabaga ijaraga olindi"
+        house_title = b.house.title if b.house else "Uy"
+        await notify(
+            session,
+            b.student_id,
+            type=NotificationType.BOOKING,
+            title="Bron bekor qilindi",
+            body=(
+                f"«{house_title}» — afsuski, uy boshqa talabaga ijaraga olindi. "
+                f"Bron avtomatik bekor qilindi."
+            ),
+            data={"booking_id": b.id, "action": "auto_cancelled"},
+        )
+
+
 async def _load_booking(session: AsyncSession, booking_id: int) -> Booking:
     stmt = (
         select(Booking)
@@ -131,6 +192,8 @@ async def _maybe_end_booking(session: AsyncSession, booking: Booking) -> bool:
         return False
 
     booking.status = BookingStatus.ENDED
+    # Release the house for new bookings
+    await _release_house_if_free(session, booking.house_id)
 
     house_title = booking.house.title if booking.house else "Uy"
     student = booking.student
@@ -216,6 +279,12 @@ def _to_list_item(b: Booking) -> BookingListItem:
 
 
 def _to_detail(b: Booking) -> BookingDetail:
+    landlord = b.house.landlord if b.house else None
+    landlord_name = (
+        f"{landlord.first_name or ''} {landlord.last_name or ''}".strip() or "Uy egasi"
+        if landlord
+        else None
+    )
     return BookingDetail(
         id=b.id,
         house_id=b.house_id,
@@ -237,6 +306,8 @@ def _to_detail(b: Booking) -> BookingDetail:
         cancellation_reason=b.cancellation_reason,
         cancelled_at=b.cancelled_at,
         contract=ContractRead.model_validate(b.contract) if b.contract else None,
+        landlord_id=b.house.landlord_id if b.house else None,
+        landlord_name=landlord_name,
     )
 
 
@@ -467,6 +538,14 @@ async def pay_booking(
             "Avval shartnomani qabul qiling", code="contract_not_accepted"
         )
 
+    # Race-safety: another student may have already paid for this house.
+    if booking.house and booking.house.status != HouseStatus.APPROVED:
+        raise BookingError(
+            "Afsuski, bu uy boshqa talabaga ijaraga olindi",
+            code="house_locked",
+            http_status=status.HTTP_409_CONFLICT,
+        )
+
     # Create payment record
     payment = Payment(
         user_id=student.id,
@@ -481,8 +560,11 @@ async def pay_booking(
     )
     session.add(payment)
 
-    # Activate booking
+    # Activate booking + lock the house (one tenant at a time)
     booking.status = BookingStatus.ACTIVE
+    if booking.house:
+        booking.house.status = HouseStatus.RENTED
+        await _auto_cancel_others(session, booking.house_id, booking.id)
 
     # Notify landlord
     house_title = booking.house.title if booking.house else "Uy"
