@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(echo \"CLAUDE_CONFIG_DIR=$env:CLAUDE_CONFIG_DIR\"; echo \"SKIP_HISTORY=$env:CLAUDE_CODE_SKIP_PROMPT_HISTORY\")"
+    ]
+  }
+}
