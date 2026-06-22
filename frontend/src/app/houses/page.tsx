@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight, LayoutGrid, MapIcon, SlidersHorizontal, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/houses/empty-state";
 import { FiltersPanel } from "@/components/houses/filters-panel";
@@ -48,6 +48,14 @@ function filtersToQuery(filters: HouseFilter): string {
 }
 
 export default function HousesPage() {
+  return (
+    <Suspense fallback={null}>
+      <HousesPageContent />
+    </Suspense>
+  );
+}
+
+function HousesPageContent() {
   const router = useRouter();
   const sp = useSearchParams();
   const filters = useMemo(() => parseFilters(sp), [sp]);

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 import { AuthGuard } from "@/components/dashboard/auth-guard";
 import { Navbar } from "@/components/landing/navbar";
@@ -37,6 +37,14 @@ function addDays(dateStr: string, days: number) {
 }
 
 export default function NewBookingPage() {
+  return (
+    <Suspense fallback={<div className="flex h-[60vh] items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}>
+      <NewBookingContent />
+    </Suspense>
+  );
+}
+
+function NewBookingContent() {
   return (
     <AuthGuard roles={["student"]}>
       <Navbar />
