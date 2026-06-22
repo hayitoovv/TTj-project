@@ -58,12 +58,12 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: https://ttj.ultrasoft.uz/api/v1
+        NEXT_PUBLIC_API_URL: https://ttj.zarmeduniver.com/api/v1
     container_name: ttj_frontend
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: https://ttj.ultrasoft.uz/api/v1
+      NEXT_PUBLIC_API_URL: https://ttj.zarmeduniver.com/api/v1
     # Expose ONLY to localhost — host nginx will proxy
     ports:
       - "127.0.0.1:13000:3000"

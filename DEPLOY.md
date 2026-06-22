@@ -1,6 +1,6 @@
 # TTJ Platforma — VPS Deployment
 
-Production deployment to `ttj.ultrasoft.uz`.
+Production deployment to `ttj.zarmeduniver.com`.
 
 This setup uses **host system nginx** as the reverse proxy (so it can coexist
 with other sites on the VPS) and Docker for the application stack.
@@ -10,7 +10,7 @@ with other sites on the VPS) and Docker for the application stack.
 - Ubuntu 22.04/24.04
 - Docker + Docker Compose v2 plugin
 - System nginx + certbot installed
-- DNS A record: `ttj.ultrasoft.uz` → VPS IP
+- DNS A record: `ttj.zarmeduniver.com` → VPS IP
 - Open ports: 22 (SSH), 80 (HTTP), 443 (HTTPS)
 
 ## First-time setup
@@ -35,16 +35,16 @@ docker compose -f docker-compose.prod.yml exec backend alembic upgrade head
 docker compose -f docker-compose.prod.yml exec backend python -m scripts.seed
 
 # 6. Set up host nginx
-sudo cp nginx/system-nginx.conf /etc/nginx/sites-available/ttj.ultrasoft.uz
-sudo ln -s /etc/nginx/sites-available/ttj.ultrasoft.uz /etc/nginx/sites-enabled/
+sudo cp nginx/system-nginx.conf /etc/nginx/sites-available/ttj.zarmeduniver.com
+sudo ln -s /etc/nginx/sites-available/ttj.zarmeduniver.com /etc/nginx/sites-enabled/
 sudo mkdir -p /var/www/certbot
 sudo nginx -t && sudo systemctl reload nginx
 
-# 7. Open http://ttj.ultrasoft.uz to verify, then get SSL:
-sudo certbot --nginx -d ttj.ultrasoft.uz \
+# 7. Open http://ttj.zarmeduniver.com to verify, then get SSL:
+sudo certbot --nginx -d ttj.zarmeduniver.com \
     --non-interactive --agree-tos -m umrzoqtoxirov@gmail.com --redirect
 
-# After certbot, https://ttj.ultrasoft.uz works.
+# After certbot, https://ttj.zarmeduniver.com works.
 ```
 
 ## Daily operations
