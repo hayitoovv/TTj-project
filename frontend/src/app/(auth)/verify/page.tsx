@@ -2,7 +2,7 @@
 
 import { ArrowRight, Loader2, MessageSquare, Sparkles } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 import { OtpInput } from "@/components/auth/otp-input";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,14 @@ import { extractApiError } from "@/lib/api/client";
 import { useAuthStore } from "@/stores/auth";
 
 export default function VerifyPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center p-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>}>
+      <VerifyContent />
+    </Suspense>
+  );
+}
+
+function VerifyContent() {
   const router = useRouter();
   const params = useSearchParams();
   const phone = params.get("phone") ?? "";
