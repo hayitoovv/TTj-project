@@ -2,90 +2,71 @@
 
 Production deployment to `ttj.ultrasoft.uz`.
 
+This setup uses **host system nginx** as the reverse proxy (so it can coexist
+with other sites on the VPS) and Docker for the application stack.
+
 ## Prerequisites
 
 - Ubuntu 22.04/24.04
-- Docker + Docker Compose installed
+- Docker + Docker Compose v2 plugin
+- System nginx + certbot installed
 - DNS A record: `ttj.ultrasoft.uz` → VPS IP
 - Open ports: 22 (SSH), 80 (HTTP), 443 (HTTPS)
 
 ## First-time setup
 
 ```bash
-# 1. Pull code
+# 1. Clone / pull
 cd /opt/TTJ-project
 git pull
 
-# 2. Add swap (4GB VPS recommended)
-sudo fallocate -l 2G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
-
-# 3. Configure environment
+# 2. Configure environment
 cp .env.production.example .env
-# Edit SECRET_KEY (openssl rand -hex 32) and POSTGRES_PASSWORD
-nano .env
+nano .env       # set SECRET_KEY (openssl rand -hex 32) and POSTGRES_PASSWORD
 
-# 4. Build & start (5-10 min on first run)
-make build
-make up
+# 3. Build & start application stack
+docker compose -f docker-compose.prod.yml build
+docker compose -f docker-compose.prod.yml up -d
 
-# 5. Run migrations
-make migrate
+# 4. Run migrations
+docker compose -f docker-compose.prod.yml exec backend alembic upgrade head
 
-# 6. Optional: seed demo data
-make seed
+# 5. Optional: seed demo data
+docker compose -f docker-compose.prod.yml exec backend python -m scripts.seed
 
-# 7. Set up SSL (after DNS has propagated)
-make ssl
+# 6. Set up host nginx
+sudo cp nginx/system-nginx.conf /etc/nginx/sites-available/ttj.ultrasoft.uz
+sudo ln -s /etc/nginx/sites-available/ttj.ultrasoft.uz /etc/nginx/sites-enabled/
+sudo mkdir -p /var/www/certbot
+sudo nginx -t && sudo systemctl reload nginx
 
-# 8. Configure firewall
-sudo ufw allow 22/tcp 80/tcp 443/tcp
-sudo ufw --force enable
+# 7. Open http://ttj.ultrasoft.uz to verify, then get SSL:
+sudo certbot --nginx -d ttj.ultrasoft.uz \
+    --non-interactive --agree-tos -m umrzoqtoxirov@gmail.com --redirect
+
+# After certbot, https://ttj.ultrasoft.uz works.
 ```
-
-After SSL: open `https://ttj.ultrasoft.uz`.
 
 ## Daily operations
 
 | Action | Command |
 |---|---|
-| View logs | `make logs` |
-| Restart all | `make up` |
-| Update from git | `make restart` |
+| View logs | `docker compose -f docker-compose.prod.yml logs -f --tail=100` |
+| Restart | `docker compose -f docker-compose.prod.yml restart` |
+| Update from git | `git pull && docker compose -f docker-compose.prod.yml up -d --build` |
 | DB shell | `docker compose -f docker-compose.prod.yml exec postgres psql -U ttj_user -d ttj_db` |
-| Backend shell | `make shell` |
-| Stop everything | `make down` |
-
-## Updating after code changes
-
-```bash
-cd /opt/TTJ-project
-make restart       # git pull + rebuild + restart
-make migrate       # if there are new migrations
-```
+| Backend shell | `docker compose -f docker-compose.prod.yml exec backend bash` |
+| Stop everything | `docker compose -f docker-compose.prod.yml down` |
 
 ## Backups
-
-Postgres data is in a Docker volume. Manual dump:
 
 ```bash
 docker compose -f docker-compose.prod.yml exec postgres \
     pg_dump -U ttj_user ttj_db | gzip > backup-$(date +%F).sql.gz
 ```
 
-Restore:
-
-```bash
-gunzip -c backup-2026-06-22.sql.gz | \
-    docker compose -f docker-compose.prod.yml exec -T postgres psql -U ttj_user ttj_db
-```
-
 ## Troubleshooting
 
-- **Frontend build fails (OOM)**: add more swap (`fallocate -l 4G /swapfile2 ...`).
-- **502 Bad Gateway**: `make logs` to check which service is failing.
-- **SSL not working**: verify DNS first (`dig ttj.ultrasoft.uz`), then re-run `make ssl`.
-- **Certbot renewal**: runs automatically every 12 hours via the `certbot` container.
+- **502 Bad Gateway**: container down. Check `docker compose -f docker-compose.prod.yml ps`.
+- **Frontend build fails (OOM)**: add swap (`fallocate -l 2G /swapfile && mkswap /swapfile && swapon /swapfile`).
+- **SSL renewal**: certbot's systemd timer renews automatically (`systemctl status certbot.timer`).
