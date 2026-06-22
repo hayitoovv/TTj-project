@@ -41,7 +41,7 @@ services:
       - .env
     # Expose ONLY to localhost — host nginx will proxy
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:18000:8000"
     volumes:
       - backend_uploads:/app/uploads
     depends_on:
@@ -66,7 +66,7 @@ services:
       NEXT_PUBLIC_API_URL: https://ttj.ultrasoft.uz/api/v1
     # Expose ONLY to localhost — host nginx will proxy
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:13000:3000"
     depends_on:
       - backend
     networks:
