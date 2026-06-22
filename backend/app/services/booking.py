@@ -267,6 +267,7 @@ def _to_list_item(b: Booking) -> BookingListItem:
         house_photo=_main_photo_url(b.house),
         student_id=b.student_id,
         student_name=_student_display_name(b.student),
+        student_avatar=b.student.avatar_url if b.student else None,
         start_date=b.start_date,
         end_date=b.end_date,
         monthly_price=b.monthly_price,
@@ -293,6 +294,7 @@ def _to_detail(b: Booking) -> BookingDetail:
         house_photo=_main_photo_url(b.house),
         student_id=b.student_id,
         student_name=_student_display_name(b.student),
+        student_avatar=b.student.avatar_url if b.student else None,
         start_date=b.start_date,
         end_date=b.end_date,
         monthly_price=b.monthly_price,
@@ -308,6 +310,7 @@ def _to_detail(b: Booking) -> BookingDetail:
         contract=ContractRead.model_validate(b.contract) if b.contract else None,
         landlord_id=b.house.landlord_id if b.house else None,
         landlord_name=landlord_name,
+        landlord_avatar=landlord.avatar_url if landlord else None,
     )
 
 

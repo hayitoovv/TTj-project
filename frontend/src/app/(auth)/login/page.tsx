@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Eye, EyeOff, Loader2, Lock, Phone, User } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, GraduationCap, Loader2, Lock, Phone, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -17,26 +17,21 @@ export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("phone");
   const [phone, setPhone] = useState("");
-  const [hemisLogin, setHemisLogin] = useState("");
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const loginWithPassword = useAuthStore((s) => s.loginWithPassword);
-  const loginWithHemis = useAuthStore((s) => s.loginWithHemis);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (mode === "hemis") return; // HEMIS rejimida submit ishlamaydi
     setError(null);
     setLoading(true);
     try {
-      if (mode === "phone") {
-        const normalized = normalizePhone("+998" + phone.replace(/\D/g, ""));
-        await loginWithPassword(normalized, password);
-      } else {
-        await loginWithHemis(hemisLogin, password);
-      }
+      const normalized = normalizePhone("+998" + phone.replace(/\D/g, ""));
+      await loginWithPassword(normalized, password);
       router.push("/dashboard");
     } catch (err) {
       setError(extractApiError(err));
@@ -60,27 +55,36 @@ export default function LoginPage() {
       {/* Mode tabs */}
       <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
         {[
-          { value: "phone", label: "Telefon raqam" },
-          { value: "hemis", label: "HEMIS" },
+          { value: "phone", label: "Telefon raqam", soon: false },
+          { value: "hemis", label: "HEMIS", soon: true },
         ].map((m) => (
           <button
             key={m.value}
             type="button"
             onClick={() => setMode(m.value as Mode)}
             className={cn(
-              "rounded-lg py-2 text-sm font-semibold transition",
+              "relative rounded-lg py-2 text-sm font-semibold transition",
               mode === m.value
                 ? "bg-background shadow-sm"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
-            {m.label}
+            <span className="inline-flex items-center gap-1.5">
+              {m.label}
+              {m.soon && (
+                <span className="rounded-full bg-yellow-400 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-foreground">
+                  Tez orada
+                </span>
+              )}
+            </span>
           </button>
         ))}
       </div>
 
-      <form onSubmit={onSubmit} className="space-y-5">
-        {mode === "phone" ? (
+      {mode === "hemis" ? (
+        <HemisComingSoon onBack={() => setMode("phone")} />
+      ) : (
+        <form onSubmit={onSubmit} className="space-y-5">
           <div className="space-y-1.5">
             <Label htmlFor="phone">Telefon raqam</Label>
             <FieldIcon icon={Phone} prefix="+998">
@@ -98,74 +102,103 @@ export default function LoginPage() {
               />
             </FieldIcon>
           </div>
-        ) : (
+
           <div className="space-y-1.5">
-            <Label htmlFor="hemisLogin">HEMIS login</Label>
-            <FieldIcon icon={User}>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Parol</Label>
+              <Link href="#" className="text-xs text-primary hover:underline">
+                Parolni unutdingizmi?
+              </Link>
+            </div>
+            <FieldIcon icon={Lock}>
               <input
-                id="hemisLogin"
-                value={hemisLogin}
-                onChange={(e) => setHemisLogin(e.target.value)}
-                placeholder="Talaba ID raqamingiz"
+                id="password"
+                type={showPwd ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
-                className="h-12 w-full bg-transparent pl-11 pr-3 text-sm focus:outline-none"
+                className="h-12 w-full bg-transparent pl-11 pr-11 text-sm focus:outline-none"
               />
+              <button
+                type="button"
+                onClick={() => setShowPwd((s) => !s)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                tabIndex={-1}
+              >
+                {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </FieldIcon>
           </div>
-        )}
 
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="password">Parol</Label>
-            <Link href="#" className="text-xs text-primary hover:underline">
-              Parolni unutdingizmi?
-            </Link>
-          </div>
-          <FieldIcon icon={Lock}>
-            <input
-              id="password"
-              type={showPwd ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="h-12 w-full bg-transparent pl-11 pr-11 text-sm focus:outline-none"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPwd((s) => !s)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              tabIndex={-1}
-            >
-              {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </FieldIcon>
-        </div>
-
-        {error && (
-          <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {error}
-          </p>
-        )}
-
-        <Button
-          type="submit"
-          size="lg"
-          className="w-full shadow-lg shadow-blue-500/20"
-          disabled={loading}
-        >
-          {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <>
-              Kirish <ArrowRight className="h-4 w-4" />
-            </>
+          {error && (
+            <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {error}
+            </p>
           )}
-        </Button>
-      </form>
 
-      <p className="text-center text-xs text-muted-foreground">
-        Test uchun HEMIS parol: <code className="rounded bg-muted px-1.5 py-0.5">test1234</code>
-      </p>
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full shadow-lg shadow-blue-500/20"
+            disabled={loading}
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                Kirish <ArrowRight className="h-4 w-4" />
+              </>
+            )}
+          </Button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function HemisComingSoon({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="space-y-5">
+      <div className="overflow-hidden rounded-2xl border-2 border-yellow-300/40 bg-gradient-to-br from-yellow-50 via-orange-50/40 to-transparent p-6 text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-md">
+          <GraduationCap className="h-7 w-7" />
+        </div>
+        <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-yellow-400/20 px-3 py-1 text-xs font-bold text-orange-700">
+          <Sparkles className="h-3 w-3" />
+          Tez orada
+        </div>
+        <h3 className="mt-3 text-lg font-bold">HEMIS orqali kirish</h3>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Talabalar uchun HEMIS hisobi orqali bir bosishda kirish va universitet,
+          kurs hamda guruh ma&apos;lumotlarini avtomatik tasdiqlash imkoniyati
+          ishlab chiqilmoqda.
+        </p>
+        <ul className="mx-auto mt-4 max-w-xs space-y-1.5 text-left text-xs text-muted-foreground">
+          <li className="flex items-start gap-2">
+            <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-400" />
+            Universitet va guruh avtomatik aniqlanadi
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-400" />
+            Soxta hisoblardan himoya
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-400" />
+            Kuratorlar bilan to&apos;g&apos;ridan-to&apos;g&apos;ri bog&apos;lanish
+          </li>
+        </ul>
+      </div>
+
+      <Button
+        type="button"
+        size="lg"
+        variant="outline"
+        className="w-full"
+        onClick={onBack}
+      >
+        <Phone className="h-4 w-4" />
+        Telefon raqam orqali kirish
+      </Button>
     </div>
   );
 }

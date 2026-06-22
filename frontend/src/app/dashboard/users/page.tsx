@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -263,14 +264,16 @@ function UserRow({
   onUnblock: () => void;
   isUnblocking: boolean;
 }) {
-  const initial = (user.first_name?.[0] ?? user.last_name?.[0] ?? "U").toUpperCase();
   const name = `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() || "—";
 
   return (
     <li className="flex items-center gap-4 px-4 py-3 transition hover:bg-muted/30">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-yellow-400 text-sm font-bold text-white">
-        {initial}
-      </div>
+      <Avatar
+        src={user.avatar_url}
+        firstName={user.first_name}
+        lastName={user.last_name}
+        size="sm"
+      />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <p className="truncate font-semibold">{name}</p>

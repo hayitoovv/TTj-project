@@ -67,3 +67,52 @@ class UserAdminRead(BaseModel):
 
 class BlockUserRequest(BaseModel):
     reason: str = Field(min_length=3, max_length=1024)
+
+
+# ---------- Analytics ----------
+class MonthlyBucket(BaseModel):
+    month: str  # "2026-01"
+    label: str  # "Yan"
+
+
+class RevenuePoint(MonthlyBucket):
+    revenue: Decimal
+    bookings: int
+    platform_fee: Decimal
+
+
+class SignupPoint(MonthlyBucket):
+    students: int
+    landlords: int
+    curators: int
+    total: int
+
+
+class HousePoint(MonthlyBucket):
+    created: int
+    approved: int
+    rejected: int
+
+
+class TopUniversity(BaseModel):
+    university_id: int
+    name: str
+    short_name: str | None = None
+    student_count: int
+
+
+class TopRegion(BaseModel):
+    region: str
+    house_count: int
+    booking_count: int
+
+
+class AnalyticsOverview(BaseModel):
+    revenue_trend: list[RevenuePoint]
+    signup_trend: list[SignupPoint]
+    house_trend: list[HousePoint]
+    top_universities: list[TopUniversity]
+    top_regions: list[TopRegion]
+    avg_booking_amount: Decimal
+    pro_landlords_count: int
+    active_pro_subscriptions: int

@@ -4,6 +4,7 @@ import {
   Ban,
   Building2,
   Calendar,
+  ChevronRight,
   GraduationCap,
   Phone,
   Search,
@@ -11,8 +12,10 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCuratorStudents } from "@/lib/api/hooks";
@@ -135,18 +138,21 @@ export default function StudentsPage() {
 }
 
 function StudentCard({ student }: { student: StudentListItem }) {
-  const initial = (
-    student.first_name?.[0] ?? student.last_name?.[0] ?? "U"
-  ).toUpperCase();
   const name =
     `${student.first_name ?? ""} ${student.last_name ?? ""}`.trim() || student.phone;
 
   return (
-    <article className="rounded-2xl border bg-card p-5 transition hover:shadow-md">
+    <Link
+      href={`/dashboard/students/${student.id}`}
+      className="group block rounded-2xl border bg-card p-5 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+    >
       <header className="flex items-start gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-yellow-400 text-base font-bold text-white">
-          {initial}
-        </div>
+        <Avatar
+          src={student.avatar_url}
+          firstName={student.first_name}
+          lastName={student.last_name}
+          size="md"
+        />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="truncate font-semibold">{name}</h3>
@@ -160,14 +166,12 @@ function StudentCard({ student }: { student: StudentListItem }) {
               </span>
             )}
           </div>
-          <a
-            href={`tel:${student.phone}`}
-            className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-          >
+          <span className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground">
             <Phone className="h-3 w-3" />
             {student.phone}
-          </a>
+          </span>
         </div>
+        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/40 transition group-hover:translate-x-0.5 group-hover:text-primary" />
       </header>
 
       {/* Academic info */}
@@ -215,7 +219,7 @@ function StudentCard({ student }: { student: StudentListItem }) {
         <Calendar className="h-3 w-3" />
         A&apos;zo: {new Date(student.created_at).toLocaleDateString("uz-UZ")}
       </p>
-    </article>
+    </Link>
   );
 }
 

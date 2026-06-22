@@ -24,6 +24,7 @@ import { StatusBadge } from "@/components/dashboard/status-badge";
 import { ReviewForm } from "@/components/reviews/review-form";
 import { ReviewList } from "@/components/reviews/review-list";
 import { UserProfileModal } from "@/components/reviews/user-profile-modal";
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { bookingsApi } from "@/lib/api/bookings";
@@ -187,9 +188,11 @@ export default function BookingDetailPage() {
                 onClick={() => setProfileOpen(true)}
                 className="group flex w-full items-center gap-3 rounded-xl border border-transparent p-2 -m-2 text-left transition hover:border-border hover:bg-muted/40"
               >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-yellow-400 text-white font-bold">
-                  {(booking.student_name ?? "T").charAt(0).toUpperCase()}
-                </div>
+                <Avatar
+                  src={booking.student_avatar}
+                  fallback={(booking.student_name ?? "T").charAt(0)}
+                  size="md"
+                />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">
                     {booking.student_name ?? "Talaba"}

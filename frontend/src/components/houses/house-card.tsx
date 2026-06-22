@@ -1,10 +1,9 @@
-import { Bed, ImageIcon, Lock, MapPin, Star } from "lucide-react";
-import Image from "next/image";
+import { Bed, Lock, MapPin, Star } from "lucide-react";
 import Link from "next/link";
 
 import { FavoriteButton } from "@/components/houses/favorite-button";
+import { HouseImage } from "@/components/houses/house-image";
 import type { HouseListItem } from "@/lib/api/types";
-import { fullUploadUrl } from "@/lib/api/uploads";
 import { cn, formatPrice } from "@/lib/utils";
 
 export function HouseCard({ house }: { house: HouseListItem }) {
@@ -19,22 +18,14 @@ export function HouseCard({ house }: { house: HouseListItem }) {
       />
 
       <div className="pointer-events-none relative aspect-[4/3] overflow-hidden bg-muted">
-        {house.main_photo ? (
-          <Image
-            src={fullUploadUrl(house.main_photo) ?? house.main_photo}
-            alt={house.title}
-            fill
-            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-            className={cn(
-              "object-cover transition-transform duration-500 group-hover:scale-105",
-              isRented && "grayscale-[40%]",
-            )}
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-100 to-yellow-100">
-            <ImageIcon className="h-12 w-12 text-muted-foreground/40" />
-          </div>
-        )}
+        <HouseImage
+          src={house.main_photo}
+          alt={house.title}
+          className={cn(
+            "transition-transform duration-500 group-hover:scale-105",
+            isRented && "grayscale-[40%]",
+          )}
+        />
 
         {isRented && (
           <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 backdrop-blur-[1px]">

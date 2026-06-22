@@ -73,7 +73,8 @@
       "PowerShell($pid_ = \\(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue\\).OwningProcess; if \\($pid_\\) { Stop-Process -Id $pid_ -Force; \"Killed PID $pid_\" } else { \"No process on port 3000\" })",
       "Read(//c/Users/behru/AppData/Local/Temp/claude/D--PROJECTS-TTJ-platforma/c23d2177-e318-4639-a364-136c9557f717/tasks/**)",
       "PowerShell(try { $r = Invoke-WebRequest \"http://localhost:3000/_next/image?url=http%3A%2F%2Flocalhost%3A8000%2Fuploads%2Fhouses%2Ftest.jpg&w=640&q=75\" -UseBasicParsing -TimeoutSec 15 -ErrorAction Stop; \"Status: $\\($r.StatusCode\\)\" } catch { \"Status: $\\($_.Exception.Response.StatusCode.value__\\)\" })",
-      "PowerShell(try { $r = Invoke-WebRequest \"http://localhost:3000/_next/image?url=http%3A%2F%2Flocalhost%3A8000%2Fuploads%2Fhouses%2F31a3cc65ce5c240f60400bdbc0a6901f.jpg&w=640&q=75\" -UseBasicParsing -TimeoutSec 15 -ErrorAction Stop; \"Status: $\\($r.StatusCode\\), Type: $\\($r.Headers['Content-Type']\\), Size: $\\($r.RawContentLength\\) bytes\" } catch { \"Status: $\\($_.Exception.Response.StatusCode.value__\\) — $\\($_.Exception.Message\\)\" })"
+      "PowerShell(try { $r = Invoke-WebRequest \"http://localhost:3000/_next/image?url=http%3A%2F%2Flocalhost%3A8000%2Fuploads%2Fhouses%2F31a3cc65ce5c240f60400bdbc0a6901f.jpg&w=640&q=75\" -UseBasicParsing -TimeoutSec 15 -ErrorAction Stop; \"Status: $\\($r.StatusCode\\), Type: $\\($r.Headers['Content-Type']\\), Size: $\\($r.RawContentLength\\) bytes\" } catch { \"Status: $\\($_.Exception.Response.StatusCode.value__\\) — $\\($_.Exception.Message\\)\" })",
+      "Bash(nslookup picsum.photos)"
     ]
   }
 }

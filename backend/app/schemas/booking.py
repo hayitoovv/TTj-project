@@ -53,6 +53,7 @@ class BookingListItem(BaseModel):
 
     student_id: int
     student_name: str | None = None
+    student_avatar: str | None = None
 
     start_date: date
     end_date: date
@@ -73,6 +74,7 @@ class BookingDetail(BookingListItem):
     contract: ContractRead | None = None
     landlord_id: int | None = None
     landlord_name: str | None = None
+    landlord_avatar: str | None = None
 
 
 class BookingFeeEstimate(BaseModel):

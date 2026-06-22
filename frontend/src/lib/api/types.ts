@@ -207,6 +207,7 @@ export interface BookingListItem {
   house_photo?: string | null;
   student_id: number;
   student_name?: string | null;
+  student_avatar?: string | null;
   start_date: string;
   end_date: string;
   monthly_price: string;
@@ -225,6 +226,7 @@ export interface BookingDetail extends BookingListItem {
   contract?: ContractRead | null;
   landlord_id?: number | null;
   landlord_name?: string | null;
+  landlord_avatar?: string | null;
 }
 
 // ---------- Review ----------

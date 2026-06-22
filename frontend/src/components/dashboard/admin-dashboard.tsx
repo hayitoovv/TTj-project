@@ -2,11 +2,13 @@
 
 import {
   ArrowRight,
+  BarChart3,
   Building2,
   CheckCircle2,
   ClipboardList,
   Clock,
   Eye,
+  GraduationCap,
   Home,
   ShieldAlert,
   Sparkles,
@@ -183,22 +185,22 @@ export function AdminDashboard({ user }: { user: UserResponse }) {
       {/* Quick actions */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <ActionCard
+          href="/dashboard/analytics"
+          icon={BarChart3}
+          title="Analitika"
+          description="Trendlar, charts"
+        />
+        <ActionCard
           href="/dashboard/users"
           icon={Users}
           title="Foydalanuvchilar"
           description="Ro'yxat, bloklash"
         />
         <ActionCard
-          href="/dashboard/houses?status=pending"
-          icon={Home}
-          title="E'lonlar"
-          description="Tasdiqlash, moderatsiya"
-        />
-        <ActionCard
-          href="/dashboard/bookings"
-          icon={ClipboardList}
-          title="Bronlar"
-          description="Barcha bronlar"
+          href="/dashboard/universities"
+          icon={GraduationCap}
+          title="Universitetlar"
+          description="HEMIS ro'yxati"
         />
         <ActionCard
           href="/dashboard/payments"

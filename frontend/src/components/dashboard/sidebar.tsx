@@ -2,9 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 import {
+  BarChart3,
   Building2,
   ClipboardList,
   CreditCard,
+  GraduationCap,
   Heart,
   Home,
   LayoutDashboard,
@@ -20,6 +22,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { chatsApi } from "@/lib/api/chats";
+import { useSubscriptionStatus } from "@/lib/api/hooks";
 import type { UserRole } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 
@@ -51,13 +54,16 @@ const NAV: Record<UserRole, NavItem[]> = {
   curator: [
     { href: "/dashboard", label: "Bosh sahifa", icon: LayoutDashboard },
     { href: "/dashboard/students", label: "Talabalar", icon: Users },
+    { href: "/dashboard/landlords", label: "Uy egalari", icon: Home },
     { href: "/dashboard/complaints", label: "Shikoyatlar", icon: ShieldAlert },
     { href: "/dashboard/messages", label: "Xabarlar", icon: MessageCircle },
     { href: "/dashboard/profile", label: "Profil", icon: User },
   ],
   admin: [
     { href: "/dashboard", label: "Bosh sahifa", icon: LayoutDashboard },
+    { href: "/dashboard/analytics", label: "Analitika", icon: BarChart3 },
     { href: "/dashboard/users", label: "Foydalanuvchilar", icon: Users },
+    { href: "/dashboard/universities", label: "Universitetlar", icon: GraduationCap },
     { href: "/dashboard/houses", label: "Uylar", icon: Home },
     { href: "/dashboard/bookings", label: "Bronlar", icon: ClipboardList },
     { href: "/dashboard/payments", label: "To'lovlar", icon: CreditCard },
@@ -76,6 +82,10 @@ export function Sidebar({ role }: { role: UserRole }) {
     refetchInterval: 30_000,
     refetchOnWindowFocus: true,
   });
+
+  const canSubscribe = role === "student" || role === "landlord";
+  const { data: subscriptionStatus } = useSubscriptionStatus(canSubscribe);
+  const showProPromo = canSubscribe && !subscriptionStatus?.is_pro;
 
   return (
     <aside className="hidden w-64 shrink-0 border-r bg-muted/20 lg:block">
@@ -122,16 +132,18 @@ export function Sidebar({ role }: { role: UserRole }) {
           })}
         </nav>
 
-        <div className="mt-6 rounded-2xl border bg-gradient-to-br from-blue-500 to-blue-700 p-4 text-white">
-          <p className="text-xs font-semibold uppercase tracking-wider opacity-80">PRO obuna</p>
-          <p className="mt-1 text-sm font-bold">Ko&apos;proq imkoniyatlar</p>
-          <Link
-            href="/#pricing"
-            className="mt-3 inline-block rounded-md bg-white/15 px-3 py-1.5 text-xs font-semibold backdrop-blur transition hover:bg-white/25"
-          >
-            Tarif tanlash →
-          </Link>
-        </div>
+        {showProPromo && (
+          <div className="mt-6 rounded-2xl border bg-gradient-to-br from-blue-500 to-blue-700 p-4 text-white">
+            <p className="text-xs font-semibold uppercase tracking-wider opacity-80">PRO obuna</p>
+            <p className="mt-1 text-sm font-bold">Ko&apos;proq imkoniyatlar</p>
+            <Link
+              href="/dashboard/subscription"
+              className="mt-3 inline-block rounded-md bg-white/15 px-3 py-1.5 text-xs font-semibold backdrop-blur transition hover:bg-white/25"
+            >
+              Tarif tanlash →
+            </Link>
+          </div>
+        )}
       </div>
     </aside>
   );

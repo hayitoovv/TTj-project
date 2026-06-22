@@ -55,9 +55,62 @@ function buildParams(filters: Record<string, unknown>): URLSearchParams {
   return p;
 }
 
+export interface MonthlyBucket {
+  month: string;
+  label: string;
+}
+
+export interface RevenuePoint extends MonthlyBucket {
+  revenue: string;
+  bookings: number;
+  platform_fee: string;
+}
+
+export interface SignupPoint extends MonthlyBucket {
+  students: number;
+  landlords: number;
+  curators: number;
+  total: number;
+}
+
+export interface HousePoint extends MonthlyBucket {
+  created: number;
+  approved: number;
+  rejected: number;
+}
+
+export interface TopUniversity {
+  university_id: number;
+  name: string;
+  short_name?: string | null;
+  student_count: number;
+}
+
+export interface TopRegion {
+  region: string;
+  house_count: number;
+  booking_count: number;
+}
+
+export interface AnalyticsOverview {
+  revenue_trend: RevenuePoint[];
+  signup_trend: SignupPoint[];
+  house_trend: HousePoint[];
+  top_universities: TopUniversity[];
+  top_regions: TopRegion[];
+  avg_booking_amount: string;
+  pro_landlords_count: number;
+  active_pro_subscriptions: number;
+}
+
 export const adminApi = {
   stats: async () => {
     const res = await apiClient.get<DashboardStats>("/admin/stats");
+    return res.data;
+  },
+
+  analyticsOverview: async () => {
+    const res = await apiClient.get<AnalyticsOverview>("/admin/analytics/overview");
     return res.data;
   },
 

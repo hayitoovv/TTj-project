@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_session, require_admin
 from app.models import User
 from app.schemas.admin import (
+    AnalyticsOverview,
     BlockUserRequest,
     DashboardStats,
     UserAdminListFilter,
@@ -24,6 +25,11 @@ router = APIRouter(
 @router.get("/stats", response_model=DashboardStats)
 async def get_stats(session: AsyncSession = Depends(get_session)):
     return await admin_service.get_dashboard_stats(session)
+
+
+@router.get("/analytics/overview", response_model=AnalyticsOverview)
+async def get_analytics_overview(session: AsyncSession = Depends(get_session)):
+    return await admin_service.get_analytics_overview(session)
 
 
 @router.get("/users", response_model=PaginatedResponse[UserAdminRead])

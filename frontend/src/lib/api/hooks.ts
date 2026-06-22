@@ -3,11 +3,16 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { adminApi, type UserAdminListFilter } from "./admin";
 import { bookingsApi, type BookingListFilter } from "./bookings";
 import { complaintsApi, type ComplaintListFilter } from "./complaints";
-import { curatorApi, type StudentListFilter } from "./curator";
+import {
+  curatorApi,
+  type LandlordListFilter,
+  type StudentListFilter,
+} from "./curator";
 import { amenitiesApi, housesApi } from "./houses";
 import { notificationsApi, type NotificationListFilter } from "./notifications";
 import { reviewsApi, type ReviewListFilter } from "./reviews";
 import { subscriptionsApi } from "./subscriptions";
+import { universitiesApi, type UniversityListFilter } from "./universities";
 import type { HouseFilter } from "./types";
 
 export function useHouses(filters: HouseFilter) {
@@ -105,6 +110,23 @@ export function useCuratorStudents(filters: StudentListFilter = {}, enabled = tr
   });
 }
 
+export function useCuratorStudent(id: number | null) {
+  return useQuery({
+    queryKey: ["curator", "student", id],
+    queryFn: () => curatorApi.getStudent(id as number),
+    enabled: id !== null && Number.isFinite(id),
+  });
+}
+
+export function useCuratorLandlords(filters: LandlordListFilter = {}, enabled = true) {
+  return useQuery({
+    queryKey: ["curator", "landlords", filters],
+    queryFn: () => curatorApi.listLandlords(filters),
+    enabled,
+    placeholderData: keepPreviousData,
+  });
+}
+
 // ---------- Complaints ----------
 export function useComplaints(filters: ComplaintListFilter = {}, enabled = true) {
   return useQuery({
@@ -130,6 +152,24 @@ export function useAdminStats(enabled = true) {
     queryFn: () => adminApi.stats(),
     enabled,
     staleTime: 30_000,
+  });
+}
+
+export function useAdminAnalytics(enabled = true) {
+  return useQuery({
+    queryKey: ["admin", "analytics", "overview"],
+    queryFn: () => adminApi.analyticsOverview(),
+    enabled,
+    staleTime: 60_000,
+  });
+}
+
+export function useUniversities(filters: UniversityListFilter = {}, enabled = true) {
+  return useQuery({
+    queryKey: ["universities", filters],
+    queryFn: () => universitiesApi.list(filters),
+    enabled,
+    placeholderData: keepPreviousData,
   });
 }
 

@@ -36,9 +36,27 @@ from app.models import (
 )
 
 
-# Helper: Unsplash apartment photos
+# Helper: real apartment interior photos from Unsplash CDN (firewall-friendly, no API key).
+_UNSPLASH_APARTMENTS = [
+    "1502672260266-1c1ef2d93688",  # modern living room
+    "1522708323590-d24dbb6b0267",  # bedroom
+    "1560448204-e02f11c3d0e2",      # kitchen
+    "1493809842364-78817add7ffb",  # cozy living
+    "1505691938895-1758d7feb511",  # apartment exterior
+    "1486304873000-235643847519",  # minimalist
+    "1556909114-f6e7ad7d3136",      # bright interior
+    "1568605114967-8130f3a36994",  # studio
+    "1565182999561-18d7dc61c393",  # warm living room
+    "1554995207-c18c203602cb",      # white interior
+    "1583847268964-b28dc8f51f92",  # modern apt
+    "1600585154340-be6161a56a0c",  # spacious living
+]
+
+
 def img(seed: str, w: int = 800) -> str:
-    return f"https://picsum.photos/seed/{seed}/{w}/{int(w * 0.66)}"
+    h = int(w * 0.66)
+    photo_id = _UNSPLASH_APARTMENTS[abs(hash(seed)) % len(_UNSPLASH_APARTMENTS)]
+    return f"https://images.unsplash.com/photo-{photo_id}?w={w}&h={h}&fit=crop&auto=format"
 
 
 UNIVERSITIES = [

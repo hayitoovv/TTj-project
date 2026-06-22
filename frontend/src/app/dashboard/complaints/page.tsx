@@ -4,6 +4,7 @@ import { Building2, Clock, Plus, ShieldAlert, ShieldCheck, User } from "lucide-r
 import Link from "next/link";
 import { useState } from "react";
 
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useComplaints } from "@/lib/api/hooks";
 import type { ComplaintRead, ComplaintStatus } from "@/lib/api/types";
@@ -122,9 +123,6 @@ function ComplaintRow({
   isHandler: boolean;
 }) {
   const meta = STATUS_META[complaint.status];
-  const initial = (
-    complaint.reporter.first_name?.[0] ?? complaint.reporter.last_name?.[0] ?? "U"
-  ).toUpperCase();
 
   return (
     <Link
@@ -133,9 +131,12 @@ function ComplaintRow({
     >
       <div className="flex items-start gap-4">
         {isHandler && (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-yellow-400 text-sm font-bold text-white">
-            {initial}
-          </div>
+          <Avatar
+            src={complaint.reporter.avatar_url}
+            firstName={complaint.reporter.first_name}
+            lastName={complaint.reporter.last_name}
+            size="sm"
+          />
         )}
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">

@@ -1,12 +1,12 @@
 "use client";
 
-import { ArrowRight, Bed, Eye, ImageIcon, MapPin, Sparkles, Star } from "lucide-react";
+import { ArrowRight, Bed, Eye, MapPin, Sparkles, Star } from "lucide-react";
 import Link from "next/link";
 
+import { HouseImage } from "@/components/houses/house-image";
 import { Button } from "@/components/ui/button";
 import { useHouses } from "@/lib/api/hooks";
-import { fullUploadUrl } from "@/lib/api/uploads";
-import { cn, formatPrice } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 
 export function FeaturedHouses() {
   const { data, isLoading } = useHouses({
@@ -60,18 +60,11 @@ export function FeaturedHouses() {
                   className="group overflow-hidden rounded-2xl border bg-card transition hover:-translate-y-1 hover:shadow-xl"
                 >
                   <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-                    {h.main_photo ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={fullUploadUrl(h.main_photo) ?? h.main_photo}
-                        alt={h.title}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center bg-gradient-to-br from-blue-100 to-yellow-100">
-                        <ImageIcon className="h-12 w-12 text-muted-foreground/40" />
-                      </div>
-                    )}
+                    <HouseImage
+                      src={h.main_photo}
+                      alt={h.title}
+                      className="transition-transform duration-500 group-hover:scale-110"
+                    />
                     {h.is_top && (
                       <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-md bg-gradient-to-r from-yellow-400 to-orange-500 px-2 py-1 text-[10px] font-bold uppercase">
                         ⭐ TOP

@@ -4,6 +4,7 @@ import {
   ArrowRight,
   Clock,
   GraduationCap,
+  Home,
   MessageCircle,
   ShieldAlert,
   ShieldCheck,
@@ -105,7 +106,7 @@ export function CuratorDashboard({ user }: { user: UserResponse }) {
       </div>
 
       {/* Quick actions */}
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <ActionCard
           href="/dashboard/complaints"
           icon={ShieldAlert}
@@ -116,13 +117,19 @@ export function CuratorDashboard({ user }: { user: UserResponse }) {
           href="/dashboard/students"
           icon={Users}
           title="Talabalar"
-          description="Biriktirilgan talabalar"
+          description="Talabalar bilan chat"
+        />
+        <ActionCard
+          href="/dashboard/landlords"
+          icon={Home}
+          title="Uy egalari"
+          description="Uy egalari bilan chat"
         />
         <ActionCard
           href="/dashboard/messages"
           icon={MessageCircle}
           title="Xabarlar"
-          description="Chat (tez orada)"
+          description="Faol suhbatlar"
         />
       </div>
     </div>

@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { extractApiError } from "@/lib/api/client";
@@ -177,9 +178,12 @@ export default function ComplaintDetailPage() {
             Murojaat qiluvchi
           </h2>
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-yellow-400 text-white font-bold">
-              {(c.reporter.first_name?.[0] ?? c.reporter.last_name?.[0] ?? "U").toUpperCase()}
-            </div>
+            <Avatar
+              src={c.reporter.avatar_url}
+              firstName={c.reporter.first_name}
+              lastName={c.reporter.last_name}
+              size="md"
+            />
             <div>
               <p className="font-semibold">
                 {`${c.reporter.first_name ?? ""} ${c.reporter.last_name ?? ""}`.trim() ||
