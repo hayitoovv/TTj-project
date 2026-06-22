@@ -39,17 +39,11 @@ function addDays(dateStr: string, days: number) {
 export default function NewBookingPage() {
   return (
     <Suspense fallback={<div className="flex h-[60vh] items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}>
-      <NewBookingContent />
+      <AuthGuard roles={["student"]}>
+        <Navbar />
+        <NewBookingContent />
+      </AuthGuard>
     </Suspense>
-  );
-}
-
-function NewBookingContent() {
-  return (
-    <AuthGuard roles={["student"]}>
-      <Navbar />
-      <NewBookingContent />
-    </AuthGuard>
   );
 }
 
