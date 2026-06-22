@@ -48,7 +48,7 @@ const STATUS_CONFIG: Record<
     color: "bg-green-500",
     bg: "bg-green-50 text-green-700",
   },
-  completed: {
+  ended: {
     label: "Tugagan",
     color: "bg-slate-500",
     bg: "bg-slate-50 text-slate-700",
@@ -58,8 +58,8 @@ const STATUS_CONFIG: Record<
     color: "bg-red-500",
     bg: "bg-red-50 text-red-700",
   },
-  rejected: {
-    label: "Rad etilgan",
+  refunded: {
+    label: "Qaytarilgan",
     color: "bg-orange-500",
     bg: "bg-orange-50 text-orange-700",
   },
@@ -105,7 +105,7 @@ export function ProStatsPanel({ houses, bookings }: ProStatsPanelProps) {
     const bucket = bucketByKey.get(key);
     if (!bucket) continue;
     bucket.bookings += 1;
-    if (b.status === "active" || b.status === "completed" || b.status === "confirmed") {
+    if (b.status === "active" || b.status === "ended" || b.status === "confirmed") {
       bucket.revenue += Number(b.monthly_price);
     }
   }

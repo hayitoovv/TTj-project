@@ -26,7 +26,7 @@ import { cn, formatPrice } from "@/lib/utils";
 
 export function AdminDashboard({ user }: { user: UserResponse }) {
   const { data: stats } = useAdminStats();
-  const { data: pendingHouses } = useAdminHouses({ status: "pending" as never, page_size: 5 });
+  const { data: pendingHouses } = useAdminHouses({ status: "pending", page_size: 5 });
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">

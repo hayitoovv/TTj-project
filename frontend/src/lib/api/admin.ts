@@ -115,7 +115,7 @@ export const adminApi = {
   },
 
   listUsers: async (filters: UserAdminListFilter = {}) => {
-    const params = buildParams(filters);
+    const params = buildParams(filters as Record<string, unknown>);
     const res = await apiClient.get<PaginatedResponse<UserAdminRead>>(
       `/admin/users?${params.toString()}`,
     );

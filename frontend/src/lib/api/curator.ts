@@ -135,7 +135,7 @@ export interface LandlordListFilter {
 
 export const curatorApi = {
   listStudents: async (filters: StudentListFilter = {}) => {
-    const params = buildParams(filters);
+    const params = buildParams(filters as Record<string, unknown>);
     const res = await apiClient.get<PaginatedResponse<StudentListItem>>(
       `/curator/students?${params.toString()}`,
     );

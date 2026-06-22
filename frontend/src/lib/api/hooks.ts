@@ -23,11 +23,12 @@ export function useHouses(filters: HouseFilter) {
   });
 }
 
-export function useMyHouses(filters: HouseFilter = {}) {
+export function useMyHouses(filters: HouseFilter = {}, enabled = true) {
   return useQuery({
     queryKey: ["houses", "mine", filters],
     queryFn: () => housesApi.listMine(filters),
     placeholderData: keepPreviousData,
+    enabled,
   });
 }
 

@@ -24,7 +24,7 @@ function buildParams(filters: Record<string, unknown>): URLSearchParams {
 
 export const complaintsApi = {
   list: async (filters: ComplaintListFilter = {}) => {
-    const params = buildParams(filters);
+    const params = buildParams(filters as Record<string, unknown>);
     const res = await apiClient.get<PaginatedResponse<ComplaintRead>>(
       `/complaints?${params.toString()}`,
     );

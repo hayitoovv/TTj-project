@@ -179,6 +179,7 @@ export interface HouseFilter {
   longitude?: number;
   radius_km?: number;
   sort?: "created_desc" | "created_asc" | "price_asc" | "price_desc" | "rating_desc" | "views_desc";
+  status?: HouseStatus;
   page?: number;
   page_size?: number;
 }
