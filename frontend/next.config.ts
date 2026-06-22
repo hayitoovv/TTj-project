@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Production: produces a self-contained server in .next/standalone for Docker
+  output: "standalone",
   images: {
     // Next.js 16: allow optimizing images from private IPs (localhost backend in dev)
     dangerouslyAllowLocalIP: true,

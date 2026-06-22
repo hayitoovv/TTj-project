@@ -3,6 +3,11 @@
 .env.local
 .env.*.local
 !.env.example
+!.env.production.example
+
+# SSL certs (Let's Encrypt managed)
+nginx/certs/
+nginx/certbot-www/
 
 # Python
 __pycache__/
