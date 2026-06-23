@@ -21,6 +21,8 @@ from app.models import (
     Booking,
     BookingStatus,
     Contract,
+    CuratorGroup,
+    CuratorProfile,
     Currency,
     House,
     HousePhoto,
@@ -382,6 +384,34 @@ async def seed():
         db.add(AdminProfile(user_id=admin.id, is_super_admin=True))
         print(f"✅ Admin user created: {admin.phone} / admin1234")
 
+        # --- Curator user ---
+        curator = User(
+            phone="+998901111110",
+            password_hash=hash_password("test1234"),
+            role=UserRole.CURATOR,
+            first_name="Dilshod",
+            last_name="Karimov",
+            is_verified=True,
+            phone_verified_at=datetime.utcnow(),
+        )
+        db.add(curator)
+        await db.flush()
+        curator_profile = CuratorProfile(
+            user_id=curator.id,
+            university_id=unis[0].id,
+            position="Talabalar bilan ishlash bo'limi kuratori",
+        )
+        db.add(curator_profile)
+        await db.flush()
+        db.add(
+            CuratorGroup(
+                curator_id=curator_profile.id,
+                university_id=unis[0].id,
+                group_name="113-23",
+            )
+        )
+        print(f"✅ Curator user created: {curator.phone} / test1234")
+
         # --- Landlord users ---
         landlord_users: list[User] = []
         for data in LANDLORDS:
@@ -604,6 +634,7 @@ async def seed():
         print("\n🎉 Seed complete!")
         print("\nLogin credentials:")
         print("  Admin:      +998901111100 / admin1234")
+        print("  Curator:    +998901111110 / test1234")
         print("  Landlord 1: +998901111101 / test1234")
         print("  Landlord 2: +998901111102 / test1234")
         print("  Landlord 3: +998901111103 / test1234")
